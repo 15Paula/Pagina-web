@@ -1,0 +1,30 @@
+[
+  {
+    "nombre": "uwu",
+    "descripcion": "sfgksfujsavfsa",
+    "precio": 777,
+    "categoria": "decoracion",
+    "imagen": "imagenes/images.jpg"
+  },
+  {
+    "nombre": "prueba 2",
+    "descripcion": "aaaaaaaaaa",
+    "precio": 666,
+    "categoria": "juegos",
+    "imagen": "imagenes/descarga.jpg"
+  },
+  {
+    "nombre": "otra",
+    "descripcion": "sisisisi",
+    "precio": 56721,
+    "categoria": "decoracion",
+    "imagen": "a"
+  },
+  {
+    "nombre": "una mas",
+    "descripcion": "nononoono",
+    "precio": 89678,
+    "categoria": "juegos",
+    "imagen": "q"
+  }
+]

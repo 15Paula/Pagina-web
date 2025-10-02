@@ -3,85 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Catálogo - Mi Tienda</title>
+  <title>Catálogo</title>
   <link rel="stylesheet" href="style.css">
   <script src="script.js" defer></script>
 </head>
 <body>
-
   <div id="header-placeholder"></div>
 
-  <main>
-    <!-- Card 1 -->
-    <div class="card">
-      <img src="imagenes/escaleras.jpg" alt="Escaleras y Serpientes">
-      <div class="card-content">
-        <div class="inner-card">
-          <h2>Escaleras y Serpientes</h2>
-          <p>¡Diversión asegurada para toda la familia! Incluye fichas de colores, dado grande y un tablero con números.</p>
-          <ul>
-            <li>Recomendado para mayores de 4 años</li>
-            <li>De 2 a 6 jugadores</li>
-            <li>Material resistente y seguro</li>
-          </ul>
-          <div class="precio">(precio)$</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 2 -->
-    <div class="card">
-      <img src="imagenes/ajedrez.jpg" alt="Tablero de ajedrez">
-      <div class="card-content">
-        <div class="inner-card">
-          <h2>Tablero de ajedrez</h2>
-          <p>Desarrolla tu pensamiento lógico y estratégico con este clásico juego. Ideal para principiantes y avanzados.</p>
-          <ul>
-            <li>Recomendado para mayores de 8 años</li>
-            <li>Para 2 jugadores</li>
-            <li>Material duradero y fácil de transportar</li>
-          </ul>
-          <div class="precio">(precio)$</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 3 -->
-    <div class="card2">
-      <img src="imagenes/madre.jpg" alt="Guirnalda Día de la Madre">
-      <div class="card-content2">
-        <div class="inner-card2">
-          <h2>Guirnalda: Día de la Madre</h2>
-          <p>Celebra el amor y la gratitud con este hermoso cartel decorativo. Ideal para homenajear a mamá en su día especial.</p>
-          <ul>
-            <li>Diseño elegante y moderno</li>
-            <li>Material resistente y liviano</li>
-            <li>Ideal para celebraciones o decoración</li>
-          </ul>
-          <div class="precio2">(precio)$</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Card 4 -->
-    <div class="card2">
-      <img src="imagenes/cumple.jpg" alt="Guirnalda Feliz Cumpleaños">
-      <div class="card-content2">
-        <div class="inner-card2">
-          <h2>Guirnalda: Feliz Cumpleaños</h2>
-          <p>¡Haz que cada cumpleaños sea especial con este elegante cartel decorativo!</p>
-          <ul>
-            <li>Diseño elegante y llamativo</li>
-            <li>Material ligero y reutilizable</li>
-            <li>Fácil de colgar o pegar</li>
-          </ul>
-          <div class="precio2">(precio)$</div>
-        </div>
-      </div>
-    </div>
-  </main>
+  <main id="catalogo-container"></main>
 
   <div id="footer-placeholder"></div>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => cargarProductos());
+  </script>
 </body>
 </html>

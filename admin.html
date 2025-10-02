@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin - Añadir productos</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body.auth-body {
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 2rem;
+      padding: 2rem;
+      background: #f5f5f5;
+    }
+
+    .auth-container {
+      flex: 1;
+      max-width: 400px;
+      background: white;
+      padding: 1.5rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    }
+
+    .preview {
+      margin-top: 0.5rem;
+      max-width: 100%;
+      max-height: 150px;
+      border: 2px dashed #ccc;
+      border-radius: 10px;
+      display: none;
+      object-fit: cover;
+    }
+
+    .admin-buttons {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      margin-top: 1rem;
+    }
+
+    .admin-buttons button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      transition: transform 0.2s ease;
+    }
+
+    .admin-buttons button:hover {
+      transform: scale(1.05);
+    }
+
+    .btn-agregar {
+      background-color: #D45510;
+      color: white;
+    }
+
+    .btn-finalizar {
+      background-color: #1B142E;
+      color: white;
+    }
+
+    /* Lista lateral */
+    .lista-container {
+      width: 250px;
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      height: fit-content;
+    }
+
+    .lista-container h2 {
+      font-size: 1.1rem;
+      margin-bottom: 0.5rem;
+      color: #1B142E;
+    }
+
+    .lista-container ul {
+      list-style: none;
+      padding-left: 0;
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .lista-container li {
+      background: #eee;
+      padding: 0.4rem 0.6rem;
+      margin-bottom: 0.3rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body class="auth-body">
+
+  <!-- 📋 Lista lateral -->
+  <div class="lista-container">
+    <h2>Productos añadidos</h2>
+    <ul id="lista-productos"></ul>
+  </div>
+
+  <!-- 📝 Formulario admin -->
+  <div class="auth-container">
+    <h1>Añadir productos</h1>
+
+    <form id="producto-form" class="auth-form">
+      <label>Nombre</label>
+      <input type="text" id="nombre" required>
+
+      <label>Descripción</label>
+      <textarea id="descripcion" required></textarea>
+
+      <label>Precio</label>
+      <input type="number" id="precio" required>
+
+      <label>Categoría</label>
+      <select id="categoria" required>
+        <option value="juegos">Juegos</option>
+        <option value="decoracion">Decoración</option>
+      </select>
+
+      <label>Ruta de imagen (ej: imagenes/juegos/ajedrez.jpg)</label>
+      <input type="text" id="imagen" required>
+
+      <img id="preview" class="preview" alt="Vista previa de imagen">
+
+      <div class="admin-buttons">
+        <button type="button" class="btn-agregar" id="agregar-btn">Agregar otro</button>
+        <button type="button" class="btn-finalizar" id="finalizar-btn">Finalizar y descargar JSON</button>
+      </div>
+    </form>
+  </div>
+
+  <script>
+    let productosExistentes = [];
+    let productosNuevos = [];
+
+    const lista = document.getElementById('lista-productos');
+    const imagenInput = document.getElementById('imagen');
+    const preview = document.getElementById('preview');
+
+    // 📌 Cargar productos existentes del JSON actual
+    async function cargarProductosExistentes() {
+      try {
+        const res = await fetch('productos.json');
+        if (res.ok) {
+          productosExistentes = await res.json();
+        } else {
+          productosExistentes = [];
+        }
+      } catch (err) {
+        console.error('No se pudo cargar productos.json:', err);
+        productosExistentes = [];
+      }
+    }
+
+    // 📌 Previsualización de imagen
+    imagenInput.addEventListener('input', () => {
+      const url = imagenInput.value.trim();
+      if (url) {
+        preview.src = url;
+        preview.style.display = 'block';
+      } else {
+        preview.style.display = 'none';
+      }
+    });
+
+    // 📌 Agregar producto temporalmente
+    function agregarProducto() {
+      const nombre = document.getElementById('nombre').value.trim();
+      const descripcion = document.getElementById('descripcion').value.trim();
+      const precio = Number(document.getElementById('precio').value);
+      const categoria = document.getElementById('categoria').value;
+      const imagen = document.getElementById('imagen').value.trim();
+
+      if (!nombre || !descripcion || !precio || !categoria || !imagen) {
+        alert('⚠️ Por favor completa todos los campos antes de agregar.');
+        return;
+      }
+
+      const nuevoProducto = { nombre, descripcion, precio, categoria, imagen };
+      productosNuevos.push(nuevoProducto);
+
+      // 📋 Añadir a la lista lateral
+      const li = document.createElement('li');
+      li.textContent = `${nombre} (${categoria})`;
+      lista.appendChild(li);
+
+      alert(`✅ Producto "${nombre}" agregado correctamente.`);
+      document.getElementById('producto-form').reset();
+      preview.style.display = 'none';
+    }
+
+    // 📌 Finalizar → unir arrays y descargar JSON
+    function finalizar() {
+      if (productosNuevos.length === 0) {
+        alert('⚠️ No has agregado ningún producto nuevo.');
+        return;
+      }
+
+      const productosFinales = [...productosExistentes, ...productosNuevos];
+
+      const blob = new Blob([JSON.stringify(productosFinales, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'productos.json';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      alert(`📦 Se descargó el JSON con ${productosFinales.length} productos en total.`);
+      productosNuevos = [];
+      lista.innerHTML = '';
+      document.getElementById('producto-form').reset();
+      preview.style.display = 'none';
+    }
+
+    document.getElementById('agregar-btn').addEventListener('click', agregarProducto);
+    document.getElementById('finalizar-btn').addEventListener('click', finalizar);
+
+    cargarProductosExistentes();
+  </script>
+</body>
+</html>
