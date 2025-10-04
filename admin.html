@@ -3,25 +3,93 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin - Añadir productos</title>
+  <title>Admin - Gestión de Productos</title>
   <link rel="stylesheet" href="style.css">
   <style>
+    /* 🌐 Layout principal en filas horizontales */
     body.auth-body {
-      display: flex;
-      justify-content: center;
-      align-items: flex-start;
+      display: grid;
+      grid-template-columns: 1.2fr 1.8fr; /* izquierda lista / derecha formulario */
       gap: 2rem;
       padding: 2rem;
       background: #f5f5f5;
+      min-height: 100vh;
     }
 
-    .auth-container {
+    /* 📋 Lista de productos */
+    .lista-container {
+      background: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      max-height: 85vh;
+    }
+
+    .lista-container h2 {
+      font-size: 1.2rem;
+      margin-bottom: 0.5rem;
+      color: #1B142E;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
       flex: 1;
-      max-width: 400px;
+      overflow-y: auto;
+    }
+
+    th, td {
+      padding: 0.4rem;
+      border-bottom: 1px solid #ddd;
+      text-align: left;
+    }
+
+    tr:hover {
+      background: #f3f3f3;
+    }
+
+    .crud-btn {
+      cursor: pointer;
+      font-size: 0.85rem;
+      border: none;
+      background: none;
+      margin-right: 0.3rem;
+    }
+
+    .crud-btn.edit { color: #007bff; }
+    .crud-btn.delete { color: #ff3333; }
+
+    /* 📝 Panel de formulario */
+    .auth-container {
       background: white;
       padding: 1.5rem;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+      overflow-y: auto;
+      max-height: 85vh;
+    }
+
+    .auth-container h1 {
+      margin-bottom: 1rem;
+    }
+
+    .auth-form label {
+      font-weight: 600;
+      margin-top: 0.5rem;
+      display: block;
+    }
+
+    .auth-form input,
+    .auth-form textarea,
+    .auth-form select {
+      width: 100%;
+      padding: 0.4rem;
+      margin-top: 0.3rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
     }
 
     .preview {
@@ -34,11 +102,27 @@
       object-fit: cover;
     }
 
+    .extra-img-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-top: 0.5rem;
+    }
+
+    .extra-img-list img {
+      width: 60px;
+      height: 60px;
+      object-fit: cover;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
     .admin-buttons {
       display: flex;
       gap: 1rem;
       justify-content: center;
       margin-top: 1rem;
+      flex-wrap: wrap;
     }
 
     .admin-buttons button {
@@ -54,69 +138,54 @@
       transform: scale(1.05);
     }
 
-    .btn-agregar {
-      background-color: #D45510;
-      color: white;
-    }
+    .btn-agregar { background-color: #D45510; color: white; }
+    .btn-guardar { background-color: #007b3e; color: white; }
+    .btn-descargar { background-color: #1B142E; color: white; }
 
-    .btn-finalizar {
-      background-color: #1B142E;
-      color: white;
-    }
-
-    /* Lista lateral */
-    .lista-container {
-      width: 250px;
-      background: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-      height: fit-content;
-    }
-
-    .lista-container h2 {
-      font-size: 1.1rem;
-      margin-bottom: 0.5rem;
-      color: #1B142E;
-    }
-
-    .lista-container ul {
-      list-style: none;
-      padding-left: 0;
-      max-height: 400px;
-      overflow-y: auto;
-    }
-
-    .lista-container li {
-      background: #eee;
-      padding: 0.4rem 0.6rem;
-      margin-bottom: 0.3rem;
-      border-radius: 6px;
-      font-size: 0.9rem;
+    /* 📱 Responsive */
+    @media(max-width: 1000px) {
+      body.auth-body {
+        grid-template-columns: 1fr;
+      }
     }
   </style>
 </head>
 <body class="auth-body">
 
-  <!-- 📋 Lista lateral -->
+  <!-- 📋 Lista de productos (izquierda) -->
   <div class="lista-container">
-    <h2>Productos añadidos</h2>
-    <ul id="lista-productos"></ul>
+    <h2>Lista de productos</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Categoría</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="tabla-productos"></tbody>
+    </table>
   </div>
 
-  <!-- 📝 Formulario admin -->
+  <!-- 📝 Formulario (derecha) -->
   <div class="auth-container">
-    <h1>Añadir productos</h1>
+    <h1 id="form-title">Añadir producto</h1>
 
     <form id="producto-form" class="auth-form">
       <label>Nombre</label>
       <input type="text" id="nombre" required>
 
-      <label>Descripción</label>
+      <label>Descripción breve</label>
       <textarea id="descripcion" required></textarea>
+
+      <label>Descripción detallada (opcional)</label>
+      <textarea id="descripcion-detallada"></textarea>
 
       <label>Precio</label>
       <input type="number" id="precio" required>
+
+      <label>Unidades disponibles</label>
+      <input type="number" id="unidades" min="0" value="0">
 
       <label>Categoría</label>
       <select id="categoria" required>
@@ -124,106 +193,168 @@
         <option value="decoracion">Decoración</option>
       </select>
 
-      <label>Ruta de imagen (ej: imagenes/juegos/ajedrez.jpg)</label>
+      <label>Ruta de imagen principal</label>
       <input type="text" id="imagen" required>
-
       <img id="preview" class="preview" alt="Vista previa de imagen">
 
+      <label>Imágenes adicionales (opcional, separadas por comas)</label>
+      <input type="text" id="imagenes-extra" placeholder="imagenes/juegos/img2.jpg, imagenes/juegos/img3.jpg">
+      <div class="extra-img-list" id="extra-preview"></div>
+
+      <label>Detalles físicos / medidas / envío (opcional)</label>
+      <textarea id="detalles"></textarea>
+
       <div class="admin-buttons">
-        <button type="button" class="btn-agregar" id="agregar-btn">Agregar otro</button>
-        <button type="button" class="btn-finalizar" id="finalizar-btn">Finalizar y descargar JSON</button>
+        <button type="button" class="btn-agregar" id="agregar-btn">Agregar nuevo</button>
+        <button type="button" class="btn-guardar" id="guardar-btn">Guardar cambios</button>
+        <button type="button" class="btn-descargar" id="descargar-btn">Descargar JSON</button>
       </div>
     </form>
   </div>
 
   <script>
-    let productosExistentes = [];
-    let productosNuevos = [];
+    let productos = [];
+    let editIndex = null;
 
-    const lista = document.getElementById('lista-productos');
+    const tabla = document.getElementById('tabla-productos');
+    const formTitle = document.getElementById('form-title');
     const imagenInput = document.getElementById('imagen');
     const preview = document.getElementById('preview');
+    const extraInput = document.getElementById('imagenes-extra');
+    const extraPreview = document.getElementById('extra-preview');
 
-    // 📌 Cargar productos existentes del JSON actual
-    async function cargarProductosExistentes() {
+    async function cargarProductos() {
       try {
         const res = await fetch('productos.json');
-        if (res.ok) {
-          productosExistentes = await res.json();
-        } else {
-          productosExistentes = [];
-        }
+        if (res.ok) productos = await res.json();
+        renderTabla();
       } catch (err) {
-        console.error('No se pudo cargar productos.json:', err);
-        productosExistentes = [];
+        console.error('Error cargando JSON', err);
       }
     }
 
-    // 📌 Previsualización de imagen
+    function renderTabla() {
+      tabla.innerHTML = '';
+      productos.forEach((p, i) => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td>${p.nombre}</td>
+          <td>${p.categoria}</td>
+          <td>
+            <button class="crud-btn edit" onclick="editarProducto(${i})">✏️</button>
+            <button class="crud-btn delete" onclick="eliminarProducto(${i})">🗑️</button>
+          </td>
+        `;
+        tabla.appendChild(row);
+      });
+    }
+
     imagenInput.addEventListener('input', () => {
       const url = imagenInput.value.trim();
-      if (url) {
-        preview.src = url;
-        preview.style.display = 'block';
-      } else {
-        preview.style.display = 'none';
-      }
+      preview.style.display = url ? 'block' : 'none';
+      if (url) preview.src = url;
     });
 
-    // 📌 Agregar producto temporalmente
-    function agregarProducto() {
+    extraInput.addEventListener('input', () => {
+      extraPreview.innerHTML = '';
+      const urls = extraInput.value.split(',').map(u => u.trim()).filter(u => u);
+      urls.forEach(u => {
+        const img = document.createElement('img');
+        img.src = u;
+        extraPreview.appendChild(img);
+      });
+    });
+
+    function obtenerDatosFormulario() {
       const nombre = document.getElementById('nombre').value.trim();
       const descripcion = document.getElementById('descripcion').value.trim();
+      const descripcionDetallada = document.getElementById('descripcion-detallada').value.trim();
       const precio = Number(document.getElementById('precio').value);
+      const unidades = Number(document.getElementById('unidades').value) || 0;
       const categoria = document.getElementById('categoria').value;
       const imagen = document.getElementById('imagen').value.trim();
+      const imagenesExtra = extraInput.value.split(',').map(u => u.trim()).filter(u => u);
+      const detalles = document.getElementById('detalles').value.trim();
 
       if (!nombre || !descripcion || !precio || !categoria || !imagen) {
-        alert('⚠️ Por favor completa todos los campos antes de agregar.');
-        return;
+        alert('⚠️ Campos obligatorios faltantes');
+        return null;
       }
 
-      const nuevoProducto = { nombre, descripcion, precio, categoria, imagen };
-      productosNuevos.push(nuevoProducto);
-
-      // 📋 Añadir a la lista lateral
-      const li = document.createElement('li');
-      li.textContent = `${nombre} (${categoria})`;
-      lista.appendChild(li);
-
-      alert(`✅ Producto "${nombre}" agregado correctamente.`);
-      document.getElementById('producto-form').reset();
-      preview.style.display = 'none';
+      return { nombre, descripcion, descripcionDetallada, precio, unidades, categoria, imagen, imagenesExtra, detalles };
     }
 
-    // 📌 Finalizar → unir arrays y descargar JSON
-    function finalizar() {
-      if (productosNuevos.length === 0) {
-        alert('⚠️ No has agregado ningún producto nuevo.');
+    function agregarProducto() {
+      const prod = obtenerDatosFormulario();
+      if (!prod) return;
+      productos.push(prod);
+      renderTabla();
+      limpiarFormulario();
+    }
+
+    window.editarProducto = (i) => {
+      const p = productos[i];
+      document.getElementById('nombre').value = p.nombre;
+      document.getElementById('descripcion').value = p.descripcion;
+      document.getElementById('descripcion-detallada').value = p.descripcionDetallada || '';
+      document.getElementById('precio').value = p.precio;
+      document.getElementById('unidades').value = p.unidades || 0;
+      document.getElementById('categoria').value = p.categoria;
+      document.getElementById('imagen').value = p.imagen;
+      preview.src = p.imagen;
+      preview.style.display = 'block';
+      extraInput.value = p.imagenesExtra ? p.imagenesExtra.join(', ') : '';
+      extraInput.dispatchEvent(new Event('input'));
+      document.getElementById('detalles').value = p.detalles || '';
+      editIndex = i;
+      formTitle.textContent = 'Editar producto';
+    };
+
+    window.eliminarProducto = (i) => {
+      if (confirm(`¿Eliminar "${productos[i].nombre}"?`)) {
+        productos.splice(i, 1);
+        renderTabla();
+        limpiarFormulario();
+      }
+    };
+
+    function guardarCambios() {
+      if (editIndex === null) {
+        alert('No hay ningún producto en edición');
         return;
       }
+      const prod = obtenerDatosFormulario();
+      if (!prod) return;
+      productos[editIndex] = prod;
+      editIndex = null;
+      formTitle.textContent = 'Añadir producto';
+      renderTabla();
+      limpiarFormulario();
+      alert('✅ Cambios guardados');
+    }
 
-      const productosFinales = [...productosExistentes, ...productosNuevos];
-
-      const blob = new Blob([JSON.stringify(productosFinales, null, 2)], { type: 'application/json' });
+    function descargarJSON() {
+      const blob = new Blob([JSON.stringify(productos, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
       a.download = 'productos.json';
       a.click();
       URL.revokeObjectURL(url);
+      alert('📦 JSON actualizado descargado');
+    }
 
-      alert(`📦 Se descargó el JSON con ${productosFinales.length} productos en total.`);
-      productosNuevos = [];
-      lista.innerHTML = '';
+    function limpiarFormulario() {
       document.getElementById('producto-form').reset();
       preview.style.display = 'none';
+      extraPreview.innerHTML = '';
     }
 
     document.getElementById('agregar-btn').addEventListener('click', agregarProducto);
-    document.getElementById('finalizar-btn').addEventListener('click', finalizar);
+    document.getElementById('guardar-btn').addEventListener('click', guardarCambios);
+    document.getElementById('descargar-btn').addEventListener('click', descargarJSON);
 
-    cargarProductosExistentes();
+    cargarProductos();
   </script>
 </body>
 </html>

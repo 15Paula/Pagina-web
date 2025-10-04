@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Carrito de Compras</title>
+  <link rel="stylesheet" href="style.css?v=4">
+</head>
+<body class="checkout-body">
+
+  <!-- 🔙 Flecha para volver -->
+  <button class="volver-btn" onclick="window.history.back()">⬅ Volver</button>
+
+  <main class="carrito-page">
+    <h1 class="page-title">🛍️ Finaliza tu compra</h1>
+
+    <section id="carrito-lista" class="carrito-lista">
+      <!-- Productos del carrito se cargan aquí -->
+    </section>
+
+    <section id="resumen-compra" class="resumen-compra">
+      <h2>Resumen de compra</h2>
+      <div class="resumen-linea"><span>Subtotal:</span><span id="subtotal">$0</span></div>
+      <div class="resumen-linea"><span>Impuestos (19%):</span><span id="impuestos">$0</span></div>
+      <div class="resumen-linea total"><span>Total:</span><span id="total">$0</span></div>
+    </section>
+
+    <section class="checkout-form">
+      <h2>Datos de envío y pago</h2>
+      <form id="checkoutForm">
+        <div class="form-row">
+          <label for="nombre">Nombre completo</label>
+          <input type="text" id="nombre" required>
+        </div>
+        <div class="form-row">
+          <label for="correo">Correo electrónico</label>
+          <input type="email" id="correo" required>
+        </div>
+        <div class="form-row">
+          <label for="direccion">Dirección de envío</label>
+          <input type="text" id="direccion" required>
+        </div>
+        <div class="form-row">
+          <label for="ciudad">Ciudad</label>
+          <input type="text" id="ciudad" required>
+        </div>
+        <div class="form-row">
+          <label for="telefono">Teléfono de contacto</label>
+          <input type="tel" id="telefono" required>
+        </div>
+
+        <hr style="margin:1rem 0;">
+
+        <h3 style="margin-bottom:0.5rem;">💳 Información de pago</h3>
+
+        <div class="form-row">
+          <label for="tarjeta">Número de tarjeta</label>
+          <input type="text" id="tarjeta" placeholder="1234 5678 9012 3456" maxlength="19" required>
+        </div>
+
+        <div class="form-row pago-doble">
+          <div>
+            <label for="expiracion">Expiración (MM/AA)</label>
+            <input type="text" id="expiracion" placeholder="MM/AA" maxlength="5" required>
+          </div>
+          <div>
+            <label for="cvv">CVV</label>
+            <input type="text" id="cvv" placeholder="123" maxlength="4" required>
+          </div>
+        </div>
+
+        <button type="submit" class="checkout-btn">Pagar ahora</button>
+      </form>
+    </section>
+  </main>
+
+  <script src="script.js?v=4"></script>
+</body>
+</html>

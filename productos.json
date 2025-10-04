@@ -26,5 +26,19 @@
     "precio": 89678,
     "categoria": "juegos",
     "imagen": "q"
+  },
+  {
+    "nombre": "fgjasfs",
+    "descripcion": "fsdfgasJFS",
+    "descripcionDetallada": "GFWSfsda",
+    "precio": 3423432,
+    "unidades": 12,
+    "categoria": "decoracion",
+    "imagen": "imagenes/DESCARGA.jpg",
+    "imagenesExtra": [
+      "imagenes/DESCARGA.jpg",
+      "imagenes/images.jpg"
+    ],
+    "detalles": "ksfvkjsgfskjfgwsk"
   }
 ]

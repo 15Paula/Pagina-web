@@ -1,21 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Catálogo</title>
-  <link rel="stylesheet" href="style.css">
-  <script src="script.js" defer></script>
+  <link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-  <div id="header-placeholder"></div>
+  <div id="header-container"></div>
 
-  <main id="catalogo-container"></main>
+  <main>
+    <h1 class="page-title">Catálogo Completo 🛍️</h1>
+    <div id="catalogo-container" class="catalogo-grid"></div>
+  </main>
 
-  <div id="footer-placeholder"></div>
-
+  <div id="footer-container"></div>
+  <script src="script.js"></script>
   <script>
-    document.addEventListener('DOMContentLoaded', () => cargarProductos());
+    document.addEventListener('DOMContentLoaded', () => {
+      cargarProductos();
+    });
   </script>
 </body>
 </html>

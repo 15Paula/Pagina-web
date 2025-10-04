@@ -1,10 +1,9 @@
-<!-- header.html -->
 <header>
   <nav>
     <div class="logo">
-      <img src="imagenes/logo.jpg" alt="logo">
+      <a href="index.html"><img src="logo.jpg" alt="logo"></a>
     </div>
-    
+
     <div class="menu">
       <a href="index.html">INICIO</a>
       <a href="juegos.html">JUEGOS</a>
@@ -13,8 +12,17 @@
     </div>
 
     <div class="user-actions">
-      <a href="login.html"><img src="imagenes/perfil.jpg" alt="perfil"></a>
-      <a href="#"><img src="imagenes/carrito.jpg" alt="carrito"></a>
+      <div class="perfil-container" onclick="window.location.href='login.html'">
+        <span class="perfil-icon">👤</span>
+        <span class="perfil-text">Iniciar sesión</span>
+      </div>
+
+      <div class="carrito-container">
+        <button id="carrito-btn">
+          🛒 <span id="carrito-count">0</span>
+        </button>
+        <div id="carrito-popup" class="carrito-popup"></div>
+      </div>
     </div>
 
   </nav>
