@@ -1,44 +1,41 @@
-/* script.js - Versión completa con búsqueda (desktop + móvil), carrito, carga dinámica, orden, expandir tarjetas y menú hamburguesa.
-   Reemplaza por completo tu script.js con este.
+/* script.js - carrito, carga dinámica de catálogo/header/footer, búsqueda y menú móvil
+   Archivo completo. Reemplaza tu script.js actual por este.
 */
 
 /* ===========================
-   Estado y cache
+   Estado inicial y utilidades
    =========================== */
+
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 let allProducts = null;            // cache de productos.json
 const SORT_STORAGE_KEY = 'catalogSortOption';
-let currentSortOption = localStorage.getItem(SORT_STORAGE_KEY) || 'name-asc';
-let lastFilterCategoria = null;
+let currentSortOption = localStorage.getItem(SORT_STORAGE_KEY) || 'name-asc'; // 'name-asc' | 'price-asc' | 'price-desc'
+let lastFilterCategoria = null;    // recuerda la categoría actual para re-renderizar
 
-/* ===========================
-   Utilidades carrito
-   =========================== */
+/* ------------------ Carrito (persistente) ------------------ */
 function guardarCarrito() {
   localStorage.setItem('carrito', JSON.stringify(carrito));
   actualizarCarritoUI();
 }
+
 function agregarAlCarrito(producto) {
   carrito.push(producto);
   guardarCarrito();
 }
+
 function eliminarDelCarrito(index) {
   carrito.splice(index, 1);
   guardarCarrito();
 }
 
-/* ===========================
-   Referencias header/carrito
-   =========================== */
+/* ------------------ Referencias header ------------------ */
 let carritoContainer = null;
 let carritoBtn = null;
 let carritoCount = null;
 let carritoPopup = null;
 let carritoAbiertoEnMovil = false;
 
-/* ===========================
-   Actualizar UI carrito
-   =========================== */
+/* ------------------ Actualizar UI del carrito ------------------ */
 function actualizarCarritoUI() {
   if (!carritoCount || !carritoPopup) return;
   carritoCount.textContent = carrito.length;
@@ -57,7 +54,7 @@ function actualizarCarritoUI() {
     item.classList.add('carrito-item');
     item.innerHTML = `
       <div class="carrito-item-info">
-        <span class="carrito-nombre">${p.nombre}</span>
+        <span class="carrito-nombre">${escapeHtml(p.nombre)}</span>
         <span class="carrito-precio">$${precio.toLocaleString()}</span>
       </div>
       <button class="remove-btn" data-index="${index}" title="Eliminar">✖️</button>
@@ -79,9 +76,12 @@ function actualizarCarritoUI() {
   });
 }
 
-/* ===========================
-   Inicializar carrito (header)
-   =========================== */
+/* escape html helper */
+function escapeHtml(s) {
+  return String(s || '').replace(/[&<>"']/g, (m) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]));
+}
+
+/* ------------------ Inicializar carrito (header) ------------------ */
 function inicializarCarrito() {
   carritoContainer = document.querySelector('.carrito-container');
   carritoBtn = document.getElementById('carrito-btn');
@@ -95,6 +95,8 @@ function inicializarCarrito() {
 
   carritoBtn.addEventListener('click', (e) => {
     e.stopPropagation();
+
+    // 📱 --- MODO MÓVIL ---
     if (window.innerWidth <= 768) {
       if (!carritoAbiertoEnMovil) {
         carritoPopup.classList.add('open');
@@ -108,10 +110,13 @@ function inicializarCarrito() {
         return;
       }
     }
-    if (carritoPopup.classList.contains('open')) carritoPopup.classList.remove('open');
-    else carritoPopup.classList.add('open');
+
+    // 💻 --- MODO PC ---
+    // 👉 En PC el clic debe redirigir directamente a la página de carrito
+    window.location.href = 'carrito.html';
   });
 
+  // 💻 --- Mostrar popup al pasar el mouse en PC ---
   carritoContainer.addEventListener('mouseenter', () => {
     if (window.innerWidth > 768) carritoPopup.classList.add('open');
   });
@@ -119,6 +124,7 @@ function inicializarCarrito() {
     if (window.innerWidth > 768) carritoPopup.classList.remove('open');
   });
 
+  // 🧼 --- Cerrar popup si se hace clic fuera ---
   document.addEventListener('click', (e) => {
     if (!carritoContainer) return;
     if (!carritoContainer.contains(e.target)) {
@@ -135,6 +141,7 @@ function inicializarCarrito() {
     }
   });
 
+  // 🔄 --- Restaurar estado si cambia el tamaño de ventana ---
   window.addEventListener('resize', () => {
     if (carritoPopup) carritoPopup.classList.remove('open');
     if (window.innerWidth > 768) {
@@ -151,9 +158,7 @@ function inicializarCarrito() {
   actualizarCarritoUI();
 }
 
-/* ===========================
-   Expandir/contraer tarjetas
-   =========================== */
+/* ------------------ Expandir tarjeta ------------------ */
 function expandCard(card) {
   if (!card) return;
 
@@ -192,9 +197,7 @@ function expandCard(card) {
   }, 120);
 }
 
-/* ===========================
-   Orden & controls (inserted when catalog present)
-   =========================== */
+/* ------------------ Sort controls injection + indicator ------------------ */
 function humanReadableSortName(option) {
   switch(option) {
     case 'price-asc': return 'Precio (menor → mayor)';
@@ -202,14 +205,17 @@ function humanReadableSortName(option) {
     default: return 'Nombre (A → Z)';
   }
 }
+
 function updateSortIndicatorText() {
   const indicator = document.getElementById('sort-indicator');
   if (!indicator) return;
   indicator.textContent = `Ordenado por: ${humanReadableSortName(currentSortOption)}`;
 }
+
 function insertSortControlsIfNeeded() {
   const contenedor = document.getElementById('catalogo-container');
   if (!contenedor) return;
+
   if (document.getElementById('sort-controls')) return;
 
   const wrapper = document.createElement('div');
@@ -235,328 +241,323 @@ function insertSortControlsIfNeeded() {
     updateSortIndicatorText();
     select.addEventListener('change', () => {
       currentSortOption = select.value;
-      try { localStorage.setItem(SORT_STORAGE_KEY, currentSortOption); } catch(e){}
+      try { localStorage.setItem(SORT_STORAGE_KEY, currentSortOption); } catch(e){ }
       updateSortIndicatorText();
       cargarProductos(lastFilterCategoria);
     });
   }
 }
 
-/* ===========================
-   BÚSQUEDA - lógica compartida
-   =========================== */
+/* ------------------ BÚSQUEDA: funciones ------------------ */
 
-let searchTimeout = null;
-const SEARCH_DEBOUNCE_MS = 210;
-const MAX_RESULTS = 6;
-
-/* Asegura que allProducts esté cargado antes de buscar */
-async function ensureProductsLoaded() {
-  if (allProducts) return allProducts;
-  try {
-    const res = await fetch('productos.json');
-    allProducts = await res.json();
-    return allProducts;
-  } catch (err) {
-    console.error('Error cargando productos.json para búsqueda', err);
-    return [];
-  }
+/* debounce utility */
+function debounce(fn, wait = 220) {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => fn.apply(this, args), wait);
+  };
 }
 
-/* Filtra por nombre (case-insensitive, diacríticos permitidos) */
-function performSearchSync(prodList, q) {
-  if (!q) return [];
-  const lowered = q.trim().toLowerCase();
-  // usar localeCompare not necessary: simple includes on normalized strings
-  const normalizedQ = lowered.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-  const matches = prodList.filter(p => {
-    const name = (p.nombre || '').toString();
-    const normalizedName = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    return normalizedName.includes(normalizedQ);
-  });
-  return matches.slice(0, MAX_RESULTS);
+/* decide target page según categoría */
+function pageForCategory(cat) {
+  if (!cat) return 'catalogo.html';
+  const c = cat.toString().toLowerCase();
+  if (c === 'decoracion' || c === 'decoración') return 'decoracion.html';
+  if (c === 'juegos') return 'juegos.html';
+  return 'catalogo.html';
 }
 
-/* Navega a la página de la categoría target con ?expand=Nombre */
-function navigateToProduct(prod) {
-  if (!prod || !prod.nombre) return;
-  const cat = (prod.categoria || '').toLowerCase();
-  let targetPage = 'catalogo.html';
-  if (cat === 'juegos') targetPage = 'juegos.html';
-  else if (cat === 'decoracion') targetPage = 'decoracion.html';
-  const url = `${targetPage}?expand=${encodeURIComponent(prod.nombre)}`;
-  window.location.href = url;
-}
-
-/* Render resultados en mini-popup (desktop) */
-function renderSearchResultsPopup(results, popupEl) {
-  if (!popupEl) return;
-  popupEl.innerHTML = '';
-  if (!results || results.length === 0) {
-    popupEl.innerHTML = '<div class="search-empty">No hay coincidencias</div>';
-    return;
-  }
-  results.forEach(r => {
-    const item = document.createElement('button');
-    item.className = 'search-result-item';
-    item.type = 'button';
-    item.textContent = r.nombre;
-    item.addEventListener('click', (e) => {
-      e.stopPropagation();
-      navigateToProduct(r);
-    });
-    popupEl.appendChild(item);
-  });
-}
-
-/* Render resultados en modal (movil) */
-function renderMobileSearchResults(results, containerEl) {
-  if (!containerEl) return;
-  containerEl.innerHTML = '';
-  if (!results || results.length === 0) {
-    containerEl.innerHTML = '<div class="search-empty">No hay coincidencias</div>';
-    return;
-  }
-  results.forEach(r => {
-    const item = document.createElement('button');
-    item.className = 'mobile-search-result-item';
-    item.type = 'button';
-    item.textContent = `${r.nombre} — ${r.categoria || ''}`;
-    item.addEventListener('click', (e) => {
-      e.stopPropagation();
-      // cerrar modal + mobile menu antes de navegar
-      closeMobileSearchModal();
-      setTimeout(() => navigateToProduct(r), 160);
-    });
-    containerEl.appendChild(item);
-  });
-}
-
-/* ===========================
-   Inicializar búsqueda (llamado tras inyectar header)
-   =========================== */
-
+/* inicializador de búsqueda: llama después de inyectar header */
 function inicializarBusqueda() {
-  // desktop elements
-  const searchToggle = document.getElementById('search-toggle');
-  const searchContainer = document.getElementById('search-container');
-  const headerInput = document.getElementById('header-search-input');
-  const searchPopup = document.getElementById('search-popup');
+  const searchBtn = document.getElementById('search-btn');
+  const inputContainer = document.getElementById('search-input-container');
+  const searchInput = document.getElementById('search-input');
+  const resultsBox = document.getElementById('search-results');
 
-  // mobile elements
-  const mobileSearchOpen = document.getElementById('mobile-search-open');
-  const mobileSearchModal = document.getElementById('mobile-search-modal');
-  const mobileSearchInput = document.getElementById('mobile-search-input');
-  const mobileSearchResults = document.getElementById('mobile-search-results');
-  const mobileSearchClose = document.getElementById('mobile-search-close');
+  if (!searchBtn || !inputContainer || !searchInput || !resultsBox) {
+    console.warn('Elementos de búsqueda no encontrados en header.');
+    return;
+  }
 
-  // Guardar elementos para cerrar al hacer click fuera
-  function closeDesktopSearch() {
-    if (searchContainer) {
-      searchContainer.classList.remove('open');
-      searchContainer.setAttribute('aria-hidden', 'true');
-      if (searchPopup) searchPopup.innerHTML = '';
+  // abrir/cerrar con el botón
+  searchBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // solo en pantallas grandes (PC) abrimos
+    if (window.innerWidth <= 768) return;
+    const isOpen = inputContainer.classList.contains('open');
+    if (isOpen) {
+      closeSearch();
+    } else {
+      openSearch();
+    }
+  });
+
+  function openSearch() {
+    inputContainer.classList.add('open');
+    inputContainer.setAttribute('aria-hidden', 'false');
+    searchInput.focus();
+    // cargar productos cache si no están
+    if (!allProducts) {
+      fetch('productos.json').then(r => r.json()).then(js => { allProducts = js; }).catch(()=>{});
     }
   }
 
-  async function handleDesktopInputChange() {
-    if (!headerInput || !searchPopup) return;
-    const q = headerInput.value || '';
-    if (!q.trim()) {
-      searchPopup.innerHTML = '';
+  function closeSearch() {
+    inputContainer.classList.remove('open');
+    inputContainer.setAttribute('aria-hidden', 'true');
+    resultsBox.innerHTML = '';
+    searchInput.value = '';
+  }
+
+  // click fuera cierra
+  document.addEventListener('click', (e) => {
+    if (!inputContainer.contains(e.target) && !searchBtn.contains(e.target)) {
+      closeSearch();
+    }
+  });
+
+  // Esc cierra
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeSearch();
+    }
+  });
+
+  // render results (array of product objects)
+  function renderResults(matches) {
+    resultsBox.innerHTML = '';
+    if (!matches || matches.length === 0) {
+      resultsBox.innerHTML = `<div class="result-empty" style="padding:0.6rem; color:#666;">No hay coincidencias</div>`;
       return;
     }
-    const prods = await ensureProductsLoaded();
-    const results = performSearchSync(prods, q);
-    renderSearchResultsPopup(results, searchPopup);
-  }
-
-  // debounce wrapper
-  function debounceDesktopSearch() {
-    if (searchTimeout) clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-      handleDesktopInputChange();
-    }, SEARCH_DEBOUNCE_MS);
-  }
-
-  /* ===== util: ajustar posición del popup de búsqueda para evitar overflow ===== */
-  function adjustSearchPopupPosition() {
-    const sc = document.getElementById('search-container');
-    if (!sc) return;
-
-    // limpiamos estilos inline previos
-    sc.style.left = '';
-    sc.style.right = '';
-    sc.style.transformOrigin = 'top right';
-
-    // forzamos reflow para medir
-    const rect = sc.getBoundingClientRect();
-
-    // si el popup sale por la izquierda del viewport -> alinearlo a la izquierda del viewport
-    if (rect.left < 8) {
-      sc.style.left = '8px';
-      sc.style.right = 'auto';
-      sc.style.transformOrigin = 'top left';
-    }
-
-    // si el popup sale por la derecha del viewport -> mantenerlo con right:8px
-    if (rect.right > (window.innerWidth - 8)) {
-      sc.style.right = '8px';
-      sc.style.left = 'auto';
-      sc.style.transformOrigin = 'top right';
-    }
-  }
-
-  // Toggle desktop search input (reemplazar la parte antigua)
-  if (searchToggle && searchContainer && headerInput) {
-    searchToggle.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isOpen = searchContainer.classList.toggle('open');
-      searchContainer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
-
-      if (isOpen) {
-        // mostramos y forzamos reubicación (pequeño timeout para que styles se apliquen)
-        setTimeout(() => {
-          adjustSearchPopupPosition();
-          headerInput.focus();
-        }, 60);
-      } else {
-        headerInput.value = '';
-        if (searchPopup) searchPopup.innerHTML = '';
-        // limpiamos estilos inline para volver a default
-        searchContainer.style.left = '';
-        searchContainer.style.right = '';
-        searchContainer.style.transformOrigin = 'top right';
-      }
-    });
-
-    // cuando el usuario escribe
-    headerInput.addEventListener('input', (e) => {
-      debounceDesktopSearch();
-      // si el popup está abierto, ajustar en cada cambio por si el tamaño cambió
-      setTimeout(() => adjustSearchPopupPosition(), 120);
-    });
-
-    // cerrar si clic fuera
-    document.addEventListener('click', (e) => {
-      const container = document.getElementById('search-container');
-      if (!container) return;
-      if (!container.contains(e.target) && e.target.id !== 'search-toggle') {
-        // cerrar
-        container.classList.remove('open');
-        container.setAttribute('aria-hidden', 'true');
-        if (searchPopup) searchPopup.innerHTML = '';
-        container.style.left = '';
-        container.style.right = '';
-        container.style.transformOrigin = 'top right';
-      }
-    });
-
-    // teclado: Esc cierra
-    headerInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
-        searchContainer.classList.remove('open');
-        searchToggle.focus();
-        searchContainer.style.left = '';
-        searchContainer.style.right = '';
-        searchContainer.style.transformOrigin = 'top right';
-      }
-    });
-
-    // Ajustar al cambiar el tamaño de la ventana (desktop)
-    window.addEventListener('resize', () => {
-      // si está abierto, recalculamos; si no, limpiamos
-      if (searchContainer.classList.contains('open')) {
-        adjustSearchPopupPosition();
-      } else {
-        searchContainer.style.left = '';
-        searchContainer.style.right = '';
-        searchContainer.style.transformOrigin = 'top right';
-      }
-    });
-  }
-
-
-  /* ----------------- MOBILE SEARCH MODAL ----------------- */
-
-  function openMobileSearchModal() {
-    if (!mobileSearchModal) return;
-    // close mobile menu overlay if open
-    const mobileMenu = document.getElementById('mobile-menu');
-    const overlay = document.getElementById('menu-overlay');
-    if (mobileMenu) mobileMenu.classList.remove('open');
-    if (overlay) overlay.classList.remove('show');
-
-    mobileSearchModal.classList.add('open');
-    mobileSearchModal.setAttribute('aria-hidden', 'false');
-    // blur background by adding class to body
-    document.body.classList.add('mobile-search-opened');
-
-    // focus input a pequeño delay para asegurar keyboard en móvil
-    setTimeout(() => {
-      if (mobileSearchInput) mobileSearchInput.focus();
-    }, 120);
-  }
-
-  function closeMobileSearchModal() {
-    if (!mobileSearchModal) return;
-    mobileSearchModal.classList.remove('open');
-    mobileSearchModal.setAttribute('aria-hidden', 'true');
-    document.body.classList.remove('mobile-search-opened');
-    if (mobileSearchInput) mobileSearchInput.value = '';
-    if (mobileSearchResults) mobileSearchResults.innerHTML = '';
-  }
-
-  if (mobileSearchOpen) {
-    mobileSearchOpen.addEventListener('click', (e) => {
-      e.stopPropagation();
-      openMobileSearchModal();
-    });
-  }
-  if (mobileSearchClose) {
-    mobileSearchClose.addEventListener('click', (e) => {
-      e.stopPropagation();
-      closeMobileSearchModal();
-    });
-  }
-
-  if (mobileSearchInput) {
-    mobileSearchInput.addEventListener('input', async (e) => {
-      if (searchTimeout) clearTimeout(searchTimeout);
-      searchTimeout = setTimeout(async () => {
-        const q = mobileSearchInput.value || '';
-        if (!q.trim()) {
-          mobileSearchResults.innerHTML = '';
-          return;
+    // mostramos máximo 8 resultados
+    matches.slice(0, 8).forEach(prod => {
+      const div = document.createElement('div');
+      div.className = 'result-item';
+      div.tabIndex = 0;
+      div.innerHTML = `<span class="r-name">${escapeHtml(prod.nombre)}</span> <span class="cat">${escapeHtml(prod.categoria || '')}</span>`;
+      // click → redirige a la página de categoría con ?expand=Nombre
+      div.addEventListener('click', (ev) => {
+        ev.stopPropagation();
+        const target = pageForCategory(prod.categoria);
+        const url = `${target}?expand=${encodeURIComponent(prod.nombre)}`;
+        window.location.href = url;
+      });
+      // allow Enter key to select
+      div.addEventListener('keydown', (ev) => {
+        if (ev.key === 'Enter') {
+          ev.preventDefault();
+          div.click();
         }
-        const prods = await ensureProductsLoaded();
-        const results = performSearchSync(prods, q);
-        renderMobileSearchResults(results, mobileSearchResults);
-      }, SEARCH_DEBOUNCE_MS);
-    });
-
-    // cerrar modal si tocan fuera (layout)
-    mobileSearchModal.addEventListener('click', (e) => {
-      if (e.target === mobileSearchModal) closeMobileSearchModal();
+      });
+      resultsBox.appendChild(div);
     });
   }
 
-  // Aseguramos que el escape cierre el modal en móvil también
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
-      closeMobileSearchModal();
-      // also close desktop search
-      const container = document.getElementById('search-container');
-      if (container && container.classList.contains('open')) {
-        container.classList.remove('open');
+  // actual search logic (case & accent-insensitive)
+  function doSearch(q) {
+    q = (q || '').trim();
+    if (!q) {
+      renderResults([]);
+      return;
+    }
+    // ensure cache
+    const ensure = allProducts ? Promise.resolve(allProducts) : fetch('productos.json').then(r => r.json()).then(js => { allProducts = js; return js; });
+    ensure.then(list => {
+      // filter names that include the query (normalize to remove diacritics)
+      const normalized = normalizeString(q);
+      const matches = list.filter(p => {
+        const name = normalizeString(p.nombre || '');
+        return name.includes(normalized);
+      });
+      // rank: startWith first, then contains
+      const starts = matches.filter(p => normalizeString(p.nombre || '').startsWith(normalized));
+      const contains = matches.filter(p => !normalizeString(p.nombre || '').startsWith(normalized));
+      const results = starts.concat(contains);
+      renderResults(results);
+    }).catch(err => {
+      console.error('Error buscando productos', err);
+      renderResults([]);
+    });
+  }
+
+  const doSearchDebounced = debounce(doSearch, 220);
+
+  searchInput.addEventListener('input', (e) => {
+    const v = e.target.value;
+    doSearchDebounced(v);
+  });
+
+  // si el usuario presiona Enter en el input, elegimos la primera coincidencia
+  searchInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      const first = resultsBox.querySelector('.result-item');
+      if (first) first.click();
+    }
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const first = resultsBox.querySelector('.result-item');
+      if (first) first.focus();
+    }
+  });
+
+  // keyboard navigation within results (delegation)
+  resultsBox.addEventListener('keydown', (e) => {
+    const current = document.activeElement;
+    if (!current || !current.classList.contains('result-item')) return;
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const next = current.nextElementSibling;
+      if (next) next.focus();
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const prev = current.previousElementSibling;
+      if (prev) prev.focus();
+      else searchInput.focus();
+    }
+  });
+
+  // normalize strings: lower + remove diacritics
+  function normalizeString(s) {
+    return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+}
+
+// -------------------------
+// BÚSQUEDA MÓVIL FULLSCREEN
+// -------------------------
+function inicializarBusquedaMovil() {
+  // espera a que el botón exista
+  const mobileSearchBtn = document.querySelector('.mobile-search-button');
+  if (!mobileSearchBtn) {
+    console.warn('inicializarBusquedaMovil: .mobile-search-button no encontrada');
+    return;
+  }
+
+  // crear overlay si no existe
+  if (!document.getElementById('mobile-search-overlay')) {
+    const overlay = document.createElement('div');
+    overlay.id = 'mobile-search-overlay';
+    overlay.innerHTML = `
+      <div class="mobile-search-box" role="dialog" aria-modal="true">
+        <div class="mobile-search-header">
+          <input id="mobile-search-input" type="search" placeholder="Buscar productos..." autocomplete="off" />
+          <button id="mobile-search-close" aria-label="Cerrar búsqueda">✖</button>
+        </div>
+        <div class="mobile-search-results"><ul id="mobile-search-results-list"></ul></div>
+      </div>
+    `;
+    document.body.appendChild(overlay);
+  }
+
+  const overlay = document.getElementById('mobile-search-overlay');
+  const input = document.getElementById('mobile-search-input');
+  const closeBtn = document.getElementById('mobile-search-close');
+  const resultsList = document.getElementById('mobile-search-results-list');
+
+  // abrir el overlay cuando se toca el botón en el menú móvil
+  mobileSearchBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    // cerrar menú móvil si está abierto
+    const mobileMenu = document.getElementById('mobile-menu');
+    const menuOverlay = document.getElementById('menu-overlay');
+    if (mobileMenu) mobileMenu.classList.remove('open');
+    if (menuOverlay) menuOverlay.classList.remove('show');
+    document.getElementById('hamburguesa-btn')?.classList.remove('open');
+
+    overlay.classList.add('active');
+    setTimeout(() => { input.focus(); }, 80);
+  });
+
+  // cerrar si toca fondo (overlay) o el botón cerrar
+  overlay.addEventListener('click', (ev) => {
+    if (ev.target === overlay) {
+      overlay.classList.remove('active');
+      input.value = '';
+      resultsList.innerHTML = '';
+    }
+  });
+
+  closeBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    overlay.classList.remove('active');
+    input.value = '';
+    resultsList.innerHTML = '';
+  });
+
+  // Debounce local (usa la misma idea de la búsqueda de escritorio)
+  function debounceLocal(fn, wait = 200) {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => fn.apply(this, args), wait);
+    };
+  }
+
+  function normalizeString(s) {
+    return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  }
+
+  // función que hace la búsqueda y renderiza resultados
+  const doMobileSearch = debounceLocal((q) => {
+    resultsList.innerHTML = '';
+    const qn = (q||'').trim();
+    if (!qn) return;
+
+    const norm = normalizeString(qn);
+    const ensure = (typeof allProducts !== 'undefined' && allProducts) ? Promise.resolve(allProducts)
+                    : fetch('productos.json').then(r => r.json()).then(js => { allProducts = js; return js; });
+
+    ensure.then(list => {
+      const matches = list.filter(p => normalizeString(p.nombre || '').includes(norm));
+      const starts = matches.filter(p => normalizeString(p.nombre || '').startsWith(norm));
+      const results = starts.concat(matches.filter(p => !normalizeString(p.nombre || '').startsWith(norm)));
+      results.slice(0, 30).forEach(prod => {
+        const li = document.createElement('li');
+        li.textContent = prod.nombre;
+        li.addEventListener('click', (ev) => {
+          ev.stopPropagation();
+          // redirige a la página correspondiente con ?expand=
+          const target = pageForCategory(prod.categoria);
+          const url = `${target}?expand=${encodeURIComponent(prod.nombre)}`;
+          // cerrar overlay y navegar
+          overlay.classList.remove('active');
+          input.value = '';
+          resultsList.innerHTML = '';
+          window.location.href = url;
+        });
+        resultsList.appendChild(li);
+      });
+
+      if (results.length === 0) {
+        resultsList.innerHTML = '<li style="font-weight:600; color:#666; padding:0.8rem 1rem;">No hay coincidencias</li>';
       }
+    }).catch(err => {
+      console.error('Error buscando en móvil', err);
+    });
+  }, 180);
+
+  // conectar input
+  input.addEventListener('input', (e) => {
+    doMobileSearch(e.target.value);
+  });
+
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      overlay.classList.remove('active');
+      input.value = '';
+      resultsList.innerHTML = '';
+    }
+    if (e.key === 'Enter') {
+      const first = resultsList.querySelector('li');
+      if (first) first.click();
     }
   });
 }
 
-/* ===========================
-   Carga dinámica de productos (catalogo/juegos/decoracion)
-   =========================== */
+/* ------------------ Cargar productos (con orden) ------------------ */
 async function cargarProductos(filtroCategoria = null) {
   try {
     lastFilterCategoria = filtroCategoria;
@@ -572,7 +573,6 @@ async function cargarProductos(filtroCategoria = null) {
       productos = productos.filter(p => p.categoria === filtroCategoria);
     }
 
-    // aplicar orden actual
     if (currentSortOption === 'price-asc') {
       productos.sort((a, b) => (Number(a.precio) || 0) - (Number(b.precio) || 0));
     } else if (currentSortOption === 'price-desc') {
@@ -607,23 +607,23 @@ async function cargarProductos(filtroCategoria = null) {
 
       card.innerHTML = `
         <div class="card-media">
-          <img src="${prod.imagen || 'placeholder.jpg'}" alt="${prod.nombre}" data-original="${prod.imagen || 'placeholder.jpg'}">
+          <img src="${prod.imagen || 'placeholder.jpg'}" alt="${escapeHtml(prod.nombre)}" data-original="${prod.imagen || 'placeholder.jpg'}">
         </div>
 
         <div class="${esJuego ? 'card-content' : 'card-content2'}">
           <div class="${esJuego ? 'inner-card' : 'inner-card2'}">
-            <h2>${prod.nombre}</h2>
+            <h2>${escapeHtml(prod.nombre)}</h2>
 
-            <p class="short-desc">${prod.descripcion || ''}</p>
+            <p class="short-desc">${escapeHtml(prod.descripcion || '')}</p>
 
             <div class="${esJuego ? 'precio' : 'precio2'}">$${(prod.precio || 0).toLocaleString()}</div>
 
             <div class="extra-content">
               <div class="extra-desc">
                 <h3>Descripción detallada</h3>
-                <p>${prod.descripcionDetallada ? prod.descripcionDetallada : (prod.descripcion || '')}</p>
+                <p>${escapeHtml(prod.descripcionDetallada ? prod.descripcionDetallada : (prod.descripcion || ''))}</p>
                 <h4 style="margin-top:0.8rem;">Detalles</h4>
-                <p>${prod.detalles ? prod.detalles : 'No hay detalles adicionales.'}</p>
+                <p>${escapeHtml(prod.detalles ? prod.detalles : 'No hay detalles adicionales.')}</p>
                 <p style="margin-top:0.6rem;"><strong>Unidades:</strong> ${prod.unidades || 0}</p>
               </div>
 
@@ -633,7 +633,7 @@ async function cargarProductos(filtroCategoria = null) {
 
               <div class="expanded-footer">
                 <div class="precio-expanded">$${(prod.precio || 0).toLocaleString()}</div>
-                <button class="add-to-cart-btn" data-nombre="${prod.nombre}" data-precio="${prod.precio || 0}">
+                <button class="add-to-cart-btn" data-nombre="${escapeHtml(prod.nombre)}" data-precio="${prod.precio || 0}">
                   🛒 Añadir al carrito
                 </button>
               </div>
@@ -649,7 +649,7 @@ async function cargarProductos(filtroCategoria = null) {
       createdCards.push({ card, product: prod });
     });
 
-    /* ------- After insert: bind events (añadir carrito, expand, thumbs, close) ------- */
+    /* --------------- After insert: bind events --------------- */
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -691,6 +691,7 @@ async function cargarProductos(filtroCategoria = null) {
             const src = thumb.dataset.src || thumb.getAttribute('src');
             const mainImg = card.querySelector('.card-media img');
             if (!mainImg) return;
+
             gallery.querySelectorAll('img').forEach(t => t.classList.remove('selected'));
             thumb.classList.add('selected');
 
@@ -702,7 +703,7 @@ async function cargarProductos(filtroCategoria = null) {
       }
     });
 
-    // manejar ?expand=Nombre en la URL
+    // Respecto a ?expand=... en URL, buscamos y expandimos
     const params = new URLSearchParams(window.location.search);
     const expandParam = params.get('expand');
     if (expandParam) {
@@ -730,24 +731,20 @@ async function cargarProductos(filtroCategoria = null) {
   }
 }
 
-/* ===========================
-   Carga header/footer e inicialización general
-   =========================== */
+/* ------------------ Carga header/footer e inicio ------------------ */
 document.addEventListener('DOMContentLoaded', () => {
-  // cargar header
   fetch('header.html')
     .then(r => r.text())
     .then(html => {
       const h = document.getElementById('header-container');
       if (h) {
         h.innerHTML = html;
-        inicializarCarrito();
+        // inicializamos carrito y búsqueda y menú (siempre que existan)
+        try { inicializarCarrito(); } catch (e) { console.warn('Error inicializando carrito', e); }
+        try { inicializarBusqueda(); } catch (e) { /* no crítico */ }
         if (typeof inicializarMenuHamburguesa === 'function') {
           try { inicializarMenuHamburguesa(); } catch (e) { console.warn('Error iniciando menu hamburguesa', e); }
-        }
-        // inicializar búsqueda (una vez header presente)
-        if (typeof inicializarBusqueda === 'function') {
-          try { inicializarBusqueda(); } catch (e) { console.warn('Error iniciando búsqueda', e); }
+          try { inicializarBusquedaMovil(); } catch (e) { console.warn('Busqueda movil no inicializada', e); }
         }
       } else {
         console.warn('#header-container no encontrado; header no inyectado.');
@@ -755,7 +752,6 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => console.error('Error cargando header.html', err));
 
-  // cargar footer
   fetch('footer.html')
     .then(r => r.text())
     .then(html => {
@@ -764,13 +760,10 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => console.error('Error cargando footer.html', err));
 
-  // cargar productos si corresponde
   cargarProductos();
 });
 
-/* ===========================
-   Menu hamburguesa (inicialización)
-   =========================== */
+/* ------------------ Menu hamburguesa ------------------ */
 function inicializarMenuHamburguesa() {
   const hamburguesaBtn = document.getElementById('hamburguesa-btn');
   const mobileMenu = document.getElementById('mobile-menu');
@@ -785,29 +778,32 @@ function inicializarMenuHamburguesa() {
   hamburguesaBtn.addEventListener('click', () => {
     mobileMenu.classList.add('open');
     overlay.classList.add('show');
+    // animate burger to X
+    hamburguesaBtn.classList.add('open');
   });
 
   cerrarMenu.addEventListener('click', () => {
     mobileMenu.classList.remove('open');
     overlay.classList.remove('show');
+    hamburguesaBtn.classList.remove('open');
   });
 
   overlay.addEventListener('click', () => {
     mobileMenu.classList.remove('open');
     overlay.classList.remove('show');
+    hamburguesaBtn.classList.remove('open');
   });
 
-  mobileMenu.querySelectorAll('a, button.mobile-menu-item').forEach(a => {
+  mobileMenu.querySelectorAll('a').forEach(a => {
     a.addEventListener('click', () => {
       mobileMenu.classList.remove('open');
       overlay.classList.remove('show');
+      hamburguesaBtn.classList.remove('open');
     });
   });
 }
 
-/* ===========================
-   Página carrito (carrito.html)
-   =========================== */
+/* ------------------ Carrito page (carrito.html) ------------------ */
 function cargarPaginaCarrito() {
   const lista = document.getElementById('carrito-lista');
   if (!lista) return;
@@ -831,8 +827,8 @@ function cargarPaginaCarrito() {
       item.className = 'carrito-item-page';
       item.innerHTML = `
         <div class="carrito-item-info-page">
-          <img src="${p.imagen || 'placeholder.jpg'}" alt="${p.nombre}">
-          <span class="nombre">${p.nombre}</span>
+          <img src="${p.imagen || 'placeholder.jpg'}" alt="${escapeHtml(p.nombre)}">
+          <span class="nombre">${escapeHtml(p.nombre)}</span>
         </div>
         <div class="carrito-item-precio">$${(Number(p.precio) || 0).toLocaleString()}</div>
         <button class="remove-btn-page" data-index="${index}">✖</button>
@@ -879,4 +875,5 @@ function cargarPaginaCarrito() {
     });
   }
 }
+
 window.addEventListener('DOMContentLoaded', cargarPaginaCarrito);

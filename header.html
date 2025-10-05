@@ -1,27 +1,23 @@
 <header>
-  <nav>
-    <!-- HAMBURGUESA (solo visible en movil) -->
+  <nav class="main-nav">
     <button id="hamburguesa-btn" class="hamburguesa-btn" aria-label="Abrir menú">
-      <span class="hamb-line"></span>
-      <span class="hamb-line"></span>
-      <span class="hamb-line"></span>
+      <span class="hb-line hb-line-1"></span>
+      <span class="hb-line hb-line-2"></span>
+      <span class="hb-line hb-line-3"></span>
     </button>
 
-    <!-- LOGO -->
     <div class="logo">
-      <a href="index.html"><img src="/Imagenes/Logo.png" alt="logo"></a>
+      <a href="index.html"><img src="Imagenes/Logo.png" alt="logo"></a>
     </div>
 
-    <!-- BUSCADOR (escritorio): icono + input oculto -->
-    <div class="header-search-wrapper">
-      <button id="search-toggle" class="search-toggle" aria-label="Abrir búsqueda">🔍</button>
-      <div id="search-container" class="search-container" aria-hidden="true">
-        <input id="header-search-input" class="header-search-input" type="search" placeholder="Buscar productos..." aria-label="Buscar productos">
-        <div id="search-popup" class="search-popup" role="listbox" aria-label="Resultados de búsqueda"></div>
+    <div class="search-wrapper" aria-hidden="false">
+      <button id="search-btn" class="search-btn" aria-label="Buscar">🔍</button>
+      <div id="search-input-container" class="search-input-container" aria-hidden="true">
+        <input id="search-input" type="search" placeholder="Buscar productos..." aria-label="Buscar productos" />
+        <div id="search-results" class="search-results" role="listbox" aria-label="Resultados de búsqueda"></div>
       </div>
     </div>
 
-    <!-- MENU principal (centro en PC) -->
     <div class="menu">
       <a href="index.html">INICIO</a>
       <a href="juegos.html">JUEGOS</a>
@@ -29,7 +25,6 @@
       <a href="catalogo.html">CATÁLOGO</a>
     </div>
 
-    <!-- ICONOS derecha (perfil / carrito) -->
     <div class="user-actions">
       <div class="perfil-container" onclick="window.location.href='login.html'">
         <span class="perfil-icon">👤</span>
@@ -37,36 +32,36 @@
       </div>
 
       <div class="carrito-container">
-        <button id="carrito-btn">
-          🛒 <span id="carrito-count">0</span>
-        </button>
+        <button id="carrito-btn" class="carrito-btn">🛒 <span id="carrito-count">0</span></button>
         <div id="carrito-popup" class="carrito-popup"></div>
       </div>
     </div>
   </nav>
 
-  <!-- MOBILE MENU (oculto por defecto) -->
   <div id="menu-overlay" class="menu-overlay" aria-hidden="true"></div>
+
   <aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
-    <button id="cerrar-menu" class="cerrar-menu" aria-label="Cerrar menú">✖</button>
+    <button id="cerrar-menu" class="mobile-close" aria-label="Cerrar menú">✖</button>
 
-    <!-- Search entry (first item in mobile menu) -->
-    <button id="mobile-search-open" class="mobile-menu-item mobile-search-open" aria-label="Buscar">
-      🔍 Buscar
-    </button>
+    <!-- -------------- AÑADÍ EL BOTÓN DE BÚSQUEDA AQUÍ (visible solo en móvil) -------------- -->
+    <div class="mobile-search-area" style="margin-bottom:0.6rem;">
+      <button class="mobile-search-button">🔍 Buscar</button>
+    </div>
+    <!-- ------------------------------------------------------------------------------- -->
 
-    <a class="mobile-menu-item" href="juegos.html">Juegos</a>
-    <a class="mobile-menu-item" href="decoracion.html">Decoración</a>
-    <a class="mobile-menu-item" href="catalogo.html">Catálogo</a>
-    <a class="mobile-menu-item" href="login.html">Iniciar sesión</a>
+    <nav class="mobile-nav">
+      <ul>
+        <li><a href="juegos.html">JUEGOS</a></li>
+        <li><a href="decoracion.html">DECORACIÓN</a></li>
+        <li><a href="catalogo.html">CATÁLOGO</a></li>
+        <li><a href="login.html">INICIAR SESIÓN</a></li>
+      </ul>
+    </nav>
   </aside>
 
-  <!-- MOBILE SEARCH MODAL (centrado) -->
-  <div id="mobile-search-modal" class="mobile-search-modal" aria-hidden="true">
-    <div class="mobile-search-card" role="dialog" aria-modal="true" aria-label="Buscar productos">
-      <input id="mobile-search-input" class="mobile-search-input" type="search" placeholder="Buscar productos..." aria-label="Buscar productos">
-      <div id="mobile-search-results" class="mobile-search-results" role="listbox"></div>
-      <button id="mobile-search-close" class="mobile-search-close" aria-label="Cerrar búsqueda">Cerrar</button>
-    </div>
-  </div>
+  <script>
+    if (typeof inicializarMenuHamburguesa === 'function') {
+      try { inicializarMenuHamburguesa(); } catch(e) { /* ignore */ }
+    }
+  </script>
 </header>
