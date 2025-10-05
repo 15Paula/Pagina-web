@@ -1,16 +1,27 @@
 <header>
   <nav>
-    <!-- 🍔 Botón hamburguesa (solo visible en móvil) -->
+    <!-- HAMBURGUESA (solo visible en movil) -->
     <button id="hamburguesa-btn" class="hamburguesa-btn" aria-label="Abrir menú">
-      ☰
+      <span class="hamb-line"></span>
+      <span class="hamb-line"></span>
+      <span class="hamb-line"></span>
     </button>
 
-    <!-- 🧿 Logo centrado -->
+    <!-- LOGO -->
     <div class="logo">
-      <a href="index.html"><img src="Imagenes/Logo.png" alt="logo"></a>
+      <a href="index.html"><img src="/Imagenes/Logo.png" alt="logo"></a>
     </div>
 
-    <!-- 🧭 Menú de escritorio -->
+    <!-- BUSCADOR (escritorio): icono + input oculto -->
+    <div class="header-search-wrapper">
+      <button id="search-toggle" class="search-toggle" aria-label="Abrir búsqueda">🔍</button>
+      <div id="search-container" class="search-container" aria-hidden="true">
+        <input id="header-search-input" class="header-search-input" type="search" placeholder="Buscar productos..." aria-label="Buscar productos">
+        <div id="search-popup" class="search-popup" role="listbox" aria-label="Resultados de búsqueda"></div>
+      </div>
+    </div>
+
+    <!-- MENU principal (centro en PC) -->
     <div class="menu">
       <a href="index.html">INICIO</a>
       <a href="juegos.html">JUEGOS</a>
@@ -18,7 +29,7 @@
       <a href="catalogo.html">CATÁLOGO</a>
     </div>
 
-    <!-- 👤 Perfil y 🛒 Carrito -->
+    <!-- ICONOS derecha (perfil / carrito) -->
     <div class="user-actions">
       <div class="perfil-container" onclick="window.location.href='login.html'">
         <span class="perfil-icon">👤</span>
@@ -34,17 +45,28 @@
     </div>
   </nav>
 
-  <!-- 🌐 Panel lateral hamburguesa -->
-  <div id="mobile-menu" class="mobile-menu">
-    <button id="cerrar-menu" class="cerrar-menu">✖</button>
-    <ul>
-      <li><a href="juegos.html">Juegos</a></li>
-      <li><a href="decoracion.html">Decoración</a></li>
-      <li><a href="catalogo.html">Catálogo</a></li>
-      <li><a href="login.html">Iniciar sesión</a></li>
-    </ul>
-  </div>
+  <!-- MOBILE MENU (oculto por defecto) -->
+  <div id="menu-overlay" class="menu-overlay" aria-hidden="true"></div>
+  <aside id="mobile-menu" class="mobile-menu" aria-hidden="true">
+    <button id="cerrar-menu" class="cerrar-menu" aria-label="Cerrar menú">✖</button>
 
-  <!-- Fondo oscuro detrás del menú -->
-  <div id="menu-overlay" class="menu-overlay"></div>
+    <!-- Search entry (first item in mobile menu) -->
+    <button id="mobile-search-open" class="mobile-menu-item mobile-search-open" aria-label="Buscar">
+      🔍 Buscar
+    </button>
+
+    <a class="mobile-menu-item" href="juegos.html">Juegos</a>
+    <a class="mobile-menu-item" href="decoracion.html">Decoración</a>
+    <a class="mobile-menu-item" href="catalogo.html">Catálogo</a>
+    <a class="mobile-menu-item" href="login.html">Iniciar sesión</a>
+  </aside>
+
+  <!-- MOBILE SEARCH MODAL (centrado) -->
+  <div id="mobile-search-modal" class="mobile-search-modal" aria-hidden="true">
+    <div class="mobile-search-card" role="dialog" aria-modal="true" aria-label="Buscar productos">
+      <input id="mobile-search-input" class="mobile-search-input" type="search" placeholder="Buscar productos..." aria-label="Buscar productos">
+      <div id="mobile-search-results" class="mobile-search-results" role="listbox"></div>
+      <button id="mobile-search-close" class="mobile-search-close" aria-label="Cerrar búsqueda">Cerrar</button>
+    </div>
+  </div>
 </header>

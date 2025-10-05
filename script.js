@@ -1,53 +1,47 @@
+/* script.js - Versión completa con búsqueda (desktop + móvil), carrito, carga dinámica, orden, expandir tarjetas y menú hamburguesa.
+   Reemplaza por completo tu script.js con este.
+*/
 
 /* ===========================
-   Estado inicial y utilidades
+   Estado y cache
    =========================== */
-
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
+let allProducts = null;            // cache de productos.json
+const SORT_STORAGE_KEY = 'catalogSortOption';
+let currentSortOption = localStorage.getItem(SORT_STORAGE_KEY) || 'name-asc';
+let lastFilterCategoria = null;
 
-/* Guardar carrito en localStorage y actualizar UI del header (si existe) */
+/* ===========================
+   Utilidades carrito
+   =========================== */
 function guardarCarrito() {
   localStorage.setItem('carrito', JSON.stringify(carrito));
   actualizarCarritoUI();
 }
-
-/* Agregar producto al carrito (objeto con {nombre, precio, imagen?}) */
 function agregarAlCarrito(producto) {
   carrito.push(producto);
   guardarCarrito();
 }
-
-/* Eliminar producto por índice */
 function eliminarDelCarrito(index) {
   carrito.splice(index, 1);
   guardarCarrito();
 }
 
 /* ===========================
-   Referencias DOM del header
-   (se inicializan en inicializarCarrito)
+   Referencias header/carrito
    =========================== */
-
 let carritoContainer = null;
 let carritoBtn = null;
 let carritoCount = null;
 let carritoPopup = null;
-
-/* Flag para control móvil: primer toque abre, segundo toque redirige */
 let carritoAbiertoEnMovil = false;
 
 /* ===========================
-   Actualizar UI del popup y contador
+   Actualizar UI carrito
    =========================== */
-
 function actualizarCarritoUI() {
-  // Si el header no está inyectado todavía, salimos (se actualizará cuando se inicialice)
   if (!carritoCount || !carritoPopup) return;
-
-  // contador
   carritoCount.textContent = carrito.length;
-
-  // limpiar popup
   carritoPopup.innerHTML = '';
 
   if (carrito.length === 0) {
@@ -56,11 +50,9 @@ function actualizarCarritoUI() {
   }
 
   let total = 0;
-
   carrito.forEach((p, index) => {
     const precio = Number(p.precio) || 0;
     total += precio;
-
     const item = document.createElement('div');
     item.classList.add('carrito-item');
     item.innerHTML = `
@@ -78,10 +70,9 @@ function actualizarCarritoUI() {
   totalDiv.innerHTML = `<strong>Total:</strong> <span>$${total.toLocaleString()}</span>`;
   carritoPopup.appendChild(totalDiv);
 
-  // listeners de eliminar (se recrean cada vez que actualizamos)
   carritoPopup.querySelectorAll('.remove-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      e.stopPropagation(); // muy importante: no cerrar popup ni propagar
+      e.stopPropagation();
       const idx = Number(btn.dataset.index);
       eliminarDelCarrito(idx);
     });
@@ -91,95 +82,60 @@ function actualizarCarritoUI() {
 /* ===========================
    Inicializar carrito (header)
    =========================== */
-
 function inicializarCarrito() {
-  // Obtener referencias del header inyectado
   carritoContainer = document.querySelector('.carrito-container');
   carritoBtn = document.getElementById('carrito-btn');
   carritoCount = document.getElementById('carrito-count');
   carritoPopup = document.getElementById('carrito-popup');
 
-  // Si no existen elementos, salimos (por ejemplo en admin.html donde no usas header)
   if (!carritoContainer || !carritoBtn || !carritoCount || !carritoPopup) {
     console.warn('Elementos del carrito no encontrados (header probablemente no cargado).');
     return;
   }
 
-  // --- COMPORTAMIENTO ESPECIAL PARA MÓVIL ---
-  // click en el botón del carrito:
-  // - en móvil (<=768px): primer toque muestra popup y cambia texto del botón;
-  //   segundo toque redirige a carrito.html
-  // - en desktop: alterna popup (manteniendo el comportamiento hover)
   carritoBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-
-    // si estamos en móvil (o pantalla estrecha)
     if (window.innerWidth <= 768) {
       if (!carritoAbiertoEnMovil) {
-        // Primer toque: mostrar popup y transformar el botón
         carritoPopup.classList.add('open');
         carritoBtn.classList.add('ver-carrito-activo');
-        // Cambiamos el contenido visible del botón para que diga "Ver carrito completo"
-        // Si tu botón contiene icono junto al contador, conserva el contador y añade texto.
-        // Para ser conservador, solo añadimos texto al final.
-        carritoBtn.dataset.originalText = carritoBtn.innerHTML; // guardamos versión original
+        carritoBtn.dataset.originalText = carritoBtn.innerHTML;
         carritoBtn.innerHTML = `🛒 Ver carrito completo <span id="carrito-count">${carrito.length}</span>`;
         carritoAbiertoEnMovil = true;
         return;
       } else {
-        // Segundo toque: redirigir a la página de carrito
         window.location.href = 'carrito.html';
         return;
       }
     }
-
-    // En pantallas grandes (desktop), el click alternará el popup (como ya hacía antes)
-    if (carritoPopup.classList.contains('open')) {
-      carritoPopup.classList.remove('open');
-    } else {
-      carritoPopup.classList.add('open');
-    }
+    if (carritoPopup.classList.contains('open')) carritoPopup.classList.remove('open');
+    else carritoPopup.classList.add('open');
   });
 
-  // Hover behavior (solo desktop): mostrar/ocultar popup al pasar el mouse
-  // Esto hará que en desktop funcione con hover y click (click alterna también)
   carritoContainer.addEventListener('mouseenter', () => {
-    if (window.innerWidth > 768) {
-      if (carritoPopup) carritoPopup.classList.add('open');
-    }
+    if (window.innerWidth > 768) carritoPopup.classList.add('open');
   });
   carritoContainer.addEventListener('mouseleave', () => {
-    if (window.innerWidth > 768) {
-      if (carritoPopup) carritoPopup.classList.remove('open');
-    }
+    if (window.innerWidth > 768) carritoPopup.classList.remove('open');
   });
 
-  // Si el usuario hace click fuera del carrito, cerramos popup y restauramos estado móvil
   document.addEventListener('click', (e) => {
-    // si no existe contenedor, salimos
     if (!carritoContainer) return;
-
-    // si el click no está dentro del carritoContainer, cerramos
     if (!carritoContainer.contains(e.target)) {
       if (carritoPopup) carritoPopup.classList.remove('open');
-      // si estábamos en modo móvil y el botón había cambiado, restauramos
       if (carritoAbiertoEnMovil) {
         carritoAbiertoEnMovil = false;
         carritoBtn.classList.remove('ver-carrito-activo');
-        // restaurar texto original si lo guardamos
         if (carritoBtn.dataset.originalText) {
           carritoBtn.innerHTML = carritoBtn.dataset.originalText;
         } else {
-          // fallback: poner icono y contador
           carritoBtn.innerHTML = `🛒 <span id="carrito-count">${carrito.length}</span>`;
         }
       }
     }
   });
 
-  // Cuando se redimensiona la ventana, restauramos el estado si se pasa a desktop
   window.addEventListener('resize', () => {
-    // cerrar popup en resize y restaurar botón si necesario
     if (carritoPopup) carritoPopup.classList.remove('open');
     if (window.innerWidth > 768) {
       carritoAbiertoEnMovil = false;
@@ -192,97 +148,511 @@ function inicializarCarrito() {
     }
   });
 
-  // Inicializar UI con estado actual del carrito
   actualizarCarritoUI();
 }
 
 /* ===========================
-   Carga dinámica de productos
+   Expandir/contraer tarjetas
+   =========================== */
+function expandCard(card) {
+  if (!card) return;
+
+  document.querySelectorAll('.card.expanded, .card2.expanded').forEach(other => {
+    if (other === card) return;
+    const mainImgOther = other.querySelector('.card-media img');
+    if (mainImgOther && mainImgOther.dataset && mainImgOther.dataset.original) {
+      mainImgOther.setAttribute('src', mainImgOther.dataset.original);
+    }
+    other.classList.remove('expanded');
+  });
+
+  card.classList.add('expanded');
+
+  const mainImg = card.querySelector('.card-media img');
+  if (mainImg && mainImg.dataset && mainImg.dataset.original) {
+    mainImg.setAttribute('src', mainImg.dataset.original);
+  }
+
+  const thumbs = Array.from(card.querySelectorAll('.extra-gallery img'));
+  thumbs.forEach(t => t.classList.remove('selected'));
+  const originalSrc = card.querySelector('.card-media img')?.dataset.original;
+  if (originalSrc) {
+    const match = thumbs.find(t => t.dataset.src === originalSrc || t.getAttribute('src') === originalSrc);
+    if (match) match.classList.add('selected');
+    else if (thumbs[0]) thumbs[0].classList.add('selected');
+  } else if (thumbs[0]) {
+    thumbs[0].classList.add('selected');
+  }
+
+  setTimeout(() => {
+    const rect = card.getBoundingClientRect();
+    if (rect.top < 0 || rect.bottom > (window.innerHeight || document.documentElement.clientHeight)) {
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, 120);
+}
+
+/* ===========================
+   Orden & controls (inserted when catalog present)
+   =========================== */
+function humanReadableSortName(option) {
+  switch(option) {
+    case 'price-asc': return 'Precio (menor → mayor)';
+    case 'price-desc': return 'Precio (mayor → menor)';
+    default: return 'Nombre (A → Z)';
+  }
+}
+function updateSortIndicatorText() {
+  const indicator = document.getElementById('sort-indicator');
+  if (!indicator) return;
+  indicator.textContent = `Ordenado por: ${humanReadableSortName(currentSortOption)}`;
+}
+function insertSortControlsIfNeeded() {
+  const contenedor = document.getElementById('catalogo-container');
+  if (!contenedor) return;
+  if (document.getElementById('sort-controls')) return;
+
+  const wrapper = document.createElement('div');
+  wrapper.id = 'sort-controls';
+  wrapper.className = 'sort-controls-wrapper';
+  wrapper.innerHTML = `
+    <div class="sort-left" aria-hidden="true"></div>
+    <div class="sort-right">
+      <label for="sort-select" class="sort-label">Ordenar:</label>
+      <select id="sort-select" aria-label="Ordenar productos">
+        <option value="name-asc">Nombre (A → Z)</option>
+        <option value="price-asc">Precio (menor → mayor)</option>
+        <option value="price-desc">Precio (mayor → menor)</option>
+      </select>
+      <span id="sort-indicator" class="sort-indicator" aria-live="polite"></span>
+    </div>
+  `;
+  contenedor.parentNode.insertBefore(wrapper, contenedor);
+
+  const select = document.getElementById('sort-select');
+  if (select) {
+    select.value = currentSortOption || 'name-asc';
+    updateSortIndicatorText();
+    select.addEventListener('change', () => {
+      currentSortOption = select.value;
+      try { localStorage.setItem(SORT_STORAGE_KEY, currentSortOption); } catch(e){}
+      updateSortIndicatorText();
+      cargarProductos(lastFilterCategoria);
+    });
+  }
+}
+
+/* ===========================
+   BÚSQUEDA - lógica compartida
    =========================== */
 
-async function cargarProductos(filtroCategoria = null) {
+let searchTimeout = null;
+const SEARCH_DEBOUNCE_MS = 210;
+const MAX_RESULTS = 6;
+
+/* Asegura que allProducts esté cargado antes de buscar */
+async function ensureProductsLoaded() {
+  if (allProducts) return allProducts;
   try {
     const res = await fetch('productos.json');
-    const productos = await res.json();
-    const contenedor = document.getElementById('catalogo-container');
-    if (!contenedor) return; // no estamos en página catálogo
-    contenedor.innerHTML = '';
+    allProducts = await res.json();
+    return allProducts;
+  } catch (err) {
+    console.error('Error cargando productos.json para búsqueda', err);
+    return [];
+  }
+}
 
-    productos
-      .filter(p => !filtroCategoria || p.categoria === filtroCategoria)
-      .forEach((prod, prodIndex) => {
-        const esJuego = prod.categoria === 'juegos';
-        const card = document.createElement('div');
-        card.classList.add(esJuego ? 'card' : 'card2');
+/* Filtra por nombre (case-insensitive, diacríticos permitidos) */
+function performSearchSync(prodList, q) {
+  if (!q) return [];
+  const lowered = q.trim().toLowerCase();
+  // usar localeCompare not necessary: simple includes on normalized strings
+  const normalizedQ = lowered.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  const matches = prodList.filter(p => {
+    const name = (p.nombre || '').toString();
+    const normalizedName = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    return normalizedName.includes(normalizedQ);
+  });
+  return matches.slice(0, MAX_RESULTS);
+}
 
-        // Construimos la lista de imágenes: principal + extras (evitamos duplicados)
-        const imgs = [];
-        if (prod.imagen) imgs.push(prod.imagen);
-        if (Array.isArray(prod.imagenesExtra) && prod.imagenesExtra.length) {
-          prod.imagenesExtra.forEach(i => {
-            if (i && !imgs.includes(i)) imgs.push(i);
-          });
+/* Navega a la página de la categoría target con ?expand=Nombre */
+function navigateToProduct(prod) {
+  if (!prod || !prod.nombre) return;
+  const cat = (prod.categoria || '').toLowerCase();
+  let targetPage = 'catalogo.html';
+  if (cat === 'juegos') targetPage = 'juegos.html';
+  else if (cat === 'decoracion') targetPage = 'decoracion.html';
+  const url = `${targetPage}?expand=${encodeURIComponent(prod.nombre)}`;
+  window.location.href = url;
+}
+
+/* Render resultados en mini-popup (desktop) */
+function renderSearchResultsPopup(results, popupEl) {
+  if (!popupEl) return;
+  popupEl.innerHTML = '';
+  if (!results || results.length === 0) {
+    popupEl.innerHTML = '<div class="search-empty">No hay coincidencias</div>';
+    return;
+  }
+  results.forEach(r => {
+    const item = document.createElement('button');
+    item.className = 'search-result-item';
+    item.type = 'button';
+    item.textContent = r.nombre;
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      navigateToProduct(r);
+    });
+    popupEl.appendChild(item);
+  });
+}
+
+/* Render resultados en modal (movil) */
+function renderMobileSearchResults(results, containerEl) {
+  if (!containerEl) return;
+  containerEl.innerHTML = '';
+  if (!results || results.length === 0) {
+    containerEl.innerHTML = '<div class="search-empty">No hay coincidencias</div>';
+    return;
+  }
+  results.forEach(r => {
+    const item = document.createElement('button');
+    item.className = 'mobile-search-result-item';
+    item.type = 'button';
+    item.textContent = `${r.nombre} — ${r.categoria || ''}`;
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      // cerrar modal + mobile menu antes de navegar
+      closeMobileSearchModal();
+      setTimeout(() => navigateToProduct(r), 160);
+    });
+    containerEl.appendChild(item);
+  });
+}
+
+/* ===========================
+   Inicializar búsqueda (llamado tras inyectar header)
+   =========================== */
+
+function inicializarBusqueda() {
+  // desktop elements
+  const searchToggle = document.getElementById('search-toggle');
+  const searchContainer = document.getElementById('search-container');
+  const headerInput = document.getElementById('header-search-input');
+  const searchPopup = document.getElementById('search-popup');
+
+  // mobile elements
+  const mobileSearchOpen = document.getElementById('mobile-search-open');
+  const mobileSearchModal = document.getElementById('mobile-search-modal');
+  const mobileSearchInput = document.getElementById('mobile-search-input');
+  const mobileSearchResults = document.getElementById('mobile-search-results');
+  const mobileSearchClose = document.getElementById('mobile-search-close');
+
+  // Guardar elementos para cerrar al hacer click fuera
+  function closeDesktopSearch() {
+    if (searchContainer) {
+      searchContainer.classList.remove('open');
+      searchContainer.setAttribute('aria-hidden', 'true');
+      if (searchPopup) searchPopup.innerHTML = '';
+    }
+  }
+
+  async function handleDesktopInputChange() {
+    if (!headerInput || !searchPopup) return;
+    const q = headerInput.value || '';
+    if (!q.trim()) {
+      searchPopup.innerHTML = '';
+      return;
+    }
+    const prods = await ensureProductsLoaded();
+    const results = performSearchSync(prods, q);
+    renderSearchResultsPopup(results, searchPopup);
+  }
+
+  // debounce wrapper
+  function debounceDesktopSearch() {
+    if (searchTimeout) clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      handleDesktopInputChange();
+    }, SEARCH_DEBOUNCE_MS);
+  }
+
+  /* ===== util: ajustar posición del popup de búsqueda para evitar overflow ===== */
+  function adjustSearchPopupPosition() {
+    const sc = document.getElementById('search-container');
+    if (!sc) return;
+
+    // limpiamos estilos inline previos
+    sc.style.left = '';
+    sc.style.right = '';
+    sc.style.transformOrigin = 'top right';
+
+    // forzamos reflow para medir
+    const rect = sc.getBoundingClientRect();
+
+    // si el popup sale por la izquierda del viewport -> alinearlo a la izquierda del viewport
+    if (rect.left < 8) {
+      sc.style.left = '8px';
+      sc.style.right = 'auto';
+      sc.style.transformOrigin = 'top left';
+    }
+
+    // si el popup sale por la derecha del viewport -> mantenerlo con right:8px
+    if (rect.right > (window.innerWidth - 8)) {
+      sc.style.right = '8px';
+      sc.style.left = 'auto';
+      sc.style.transformOrigin = 'top right';
+    }
+  }
+
+  // Toggle desktop search input (reemplazar la parte antigua)
+  if (searchToggle && searchContainer && headerInput) {
+    searchToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = searchContainer.classList.toggle('open');
+      searchContainer.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+
+      if (isOpen) {
+        // mostramos y forzamos reubicación (pequeño timeout para que styles se apliquen)
+        setTimeout(() => {
+          adjustSearchPopupPosition();
+          headerInput.focus();
+        }, 60);
+      } else {
+        headerInput.value = '';
+        if (searchPopup) searchPopup.innerHTML = '';
+        // limpiamos estilos inline para volver a default
+        searchContainer.style.left = '';
+        searchContainer.style.right = '';
+        searchContainer.style.transformOrigin = 'top right';
+      }
+    });
+
+    // cuando el usuario escribe
+    headerInput.addEventListener('input', (e) => {
+      debounceDesktopSearch();
+      // si el popup está abierto, ajustar en cada cambio por si el tamaño cambió
+      setTimeout(() => adjustSearchPopupPosition(), 120);
+    });
+
+    // cerrar si clic fuera
+    document.addEventListener('click', (e) => {
+      const container = document.getElementById('search-container');
+      if (!container) return;
+      if (!container.contains(e.target) && e.target.id !== 'search-toggle') {
+        // cerrar
+        container.classList.remove('open');
+        container.setAttribute('aria-hidden', 'true');
+        if (searchPopup) searchPopup.innerHTML = '';
+        container.style.left = '';
+        container.style.right = '';
+        container.style.transformOrigin = 'top right';
+      }
+    });
+
+    // teclado: Esc cierra
+    headerInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        searchContainer.classList.remove('open');
+        searchToggle.focus();
+        searchContainer.style.left = '';
+        searchContainer.style.right = '';
+        searchContainer.style.transformOrigin = 'top right';
+      }
+    });
+
+    // Ajustar al cambiar el tamaño de la ventana (desktop)
+    window.addEventListener('resize', () => {
+      // si está abierto, recalculamos; si no, limpiamos
+      if (searchContainer.classList.contains('open')) {
+        adjustSearchPopupPosition();
+      } else {
+        searchContainer.style.left = '';
+        searchContainer.style.right = '';
+        searchContainer.style.transformOrigin = 'top right';
+      }
+    });
+  }
+
+
+  /* ----------------- MOBILE SEARCH MODAL ----------------- */
+
+  function openMobileSearchModal() {
+    if (!mobileSearchModal) return;
+    // close mobile menu overlay if open
+    const mobileMenu = document.getElementById('mobile-menu');
+    const overlay = document.getElementById('menu-overlay');
+    if (mobileMenu) mobileMenu.classList.remove('open');
+    if (overlay) overlay.classList.remove('show');
+
+    mobileSearchModal.classList.add('open');
+    mobileSearchModal.setAttribute('aria-hidden', 'false');
+    // blur background by adding class to body
+    document.body.classList.add('mobile-search-opened');
+
+    // focus input a pequeño delay para asegurar keyboard en móvil
+    setTimeout(() => {
+      if (mobileSearchInput) mobileSearchInput.focus();
+    }, 120);
+  }
+
+  function closeMobileSearchModal() {
+    if (!mobileSearchModal) return;
+    mobileSearchModal.classList.remove('open');
+    mobileSearchModal.setAttribute('aria-hidden', 'true');
+    document.body.classList.remove('mobile-search-opened');
+    if (mobileSearchInput) mobileSearchInput.value = '';
+    if (mobileSearchResults) mobileSearchResults.innerHTML = '';
+  }
+
+  if (mobileSearchOpen) {
+    mobileSearchOpen.addEventListener('click', (e) => {
+      e.stopPropagation();
+      openMobileSearchModal();
+    });
+  }
+  if (mobileSearchClose) {
+    mobileSearchClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeMobileSearchModal();
+    });
+  }
+
+  if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', async (e) => {
+      if (searchTimeout) clearTimeout(searchTimeout);
+      searchTimeout = setTimeout(async () => {
+        const q = mobileSearchInput.value || '';
+        if (!q.trim()) {
+          mobileSearchResults.innerHTML = '';
+          return;
         }
+        const prods = await ensureProductsLoaded();
+        const results = performSearchSync(prods, q);
+        renderMobileSearchResults(results, mobileSearchResults);
+      }, SEARCH_DEBOUNCE_MS);
+    });
 
-        // Miniaturas HTML para la galería (usadas en expandido)
-        const thumbsHtml = imgs.map((src, idx) => {
-          return `<img class="thumb" data-src="${src}" src="${src}" alt="thumb-${idx}">`;
-        }).join('');
+    // cerrar modal si tocan fuera (layout)
+    mobileSearchModal.addEventListener('click', (e) => {
+      if (e.target === mobileSearchModal) closeMobileSearchModal();
+    });
+  }
 
-        card.innerHTML = `
-          <div class="card-media">
-            <img src="${prod.imagen || 'placeholder.jpg'}" alt="${prod.nombre}" data-original="${prod.imagen || 'placeholder.jpg'}">
-          </div>
+  // Aseguramos que el escape cierre el modal en móvil también
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeMobileSearchModal();
+      // also close desktop search
+      const container = document.getElementById('search-container');
+      if (container && container.classList.contains('open')) {
+        container.classList.remove('open');
+      }
+    }
+  });
+}
 
-          <div class="${esJuego ? 'card-content' : 'card-content2'}">
-            <div class="${esJuego ? 'inner-card' : 'inner-card2'}">
-              <h2>${prod.nombre}</h2>
+/* ===========================
+   Carga dinámica de productos (catalogo/juegos/decoracion)
+   =========================== */
+async function cargarProductos(filtroCategoria = null) {
+  try {
+    lastFilterCategoria = filtroCategoria;
+    insertSortControlsIfNeeded();
 
-              <!-- Descripción corta visible en modo colapsado -->
-              <p class="short-desc">${prod.descripcion || ''}</p>
+    if (!allProducts) {
+      const res = await fetch('productos.json');
+      allProducts = await res.json();
+    }
+    let productos = (allProducts || []).slice();
 
-              <!-- precio (visible en modo normal; ocultamos en modo expandido) -->
-              <div class="${esJuego ? 'precio' : 'precio2'}">$${(prod.precio || 0).toLocaleString()}</div>
+    if (filtroCategoria) {
+      productos = productos.filter(p => p.categoria === filtroCategoria);
+    }
 
-              <!-- contenido extra que aparece cuando la tarjeta está expandida -->
-              <div class="extra-content">
-                <div class="extra-desc">
-                  <h3>Descripción detallada</h3>
-                  <p>${prod.descripcionDetallada ? prod.descripcionDetallada : (prod.descripcion || '')}</p>
-                  <h4 style="margin-top:0.8rem;">Detalles</h4>
-                  <p>${prod.detalles ? prod.detalles : 'No hay detalles adicionales.'}</p>
-                  <p style="margin-top:0.6rem;"><strong>Unidades:</strong> ${prod.unidades || 0}</p>
-                </div>
+    // aplicar orden actual
+    if (currentSortOption === 'price-asc') {
+      productos.sort((a, b) => (Number(a.precio) || 0) - (Number(b.precio) || 0));
+    } else if (currentSortOption === 'price-desc') {
+      productos.sort((a, b) => (Number(b.precio) || 0) - (Number(a.precio) || 0));
+    } else {
+      productos.sort((a, b) => {
+        const na = (a.nombre || '').toString();
+        const nb = (b.nombre || '').toString();
+        return na.localeCompare(nb, 'es', { sensitivity: 'base' });
+      });
+    }
 
-                <!-- GALERÍA: principal + extras (solo en expandido) -->
-                <div class="extra-gallery" aria-hidden="true">
-                  ${thumbsHtml}
-                </div>
+    const contenedor = document.getElementById('catalogo-container');
+    if (!contenedor) return;
+    contenedor.innerHTML = '';
+    const createdCards = [];
 
-                <!-- footer dentro del extra-content con precio y único botón añadir -->
-                <div class="expanded-footer">
-                  <div class="precio-expanded">$${(prod.precio || 0).toLocaleString()}</div>
-                  <button class="add-to-cart-btn" data-nombre="${prod.nombre}" data-precio="${prod.precio || 0}">
-                    🛒 Añadir al carrito
-                  </button>
-                </div>
+    productos.forEach((prod) => {
+      const esJuego = prod.categoria === 'juegos';
+      const card = document.createElement('div');
+      card.classList.add(esJuego ? 'card' : 'card2');
+
+      const imgs = [];
+      if (prod.imagen) imgs.push(prod.imagen);
+      if (Array.isArray(prod.imagenesExtra) && prod.imagenesExtra.length) {
+        prod.imagenesExtra.forEach(i => { if (i && !imgs.includes(i)) imgs.push(i); });
+      }
+
+      const thumbsHtml = imgs.map((src, idx) => {
+        return `<img class="thumb" data-src="${src}" src="${src}" alt="thumb-${idx}">`;
+      }).join('');
+
+      card.innerHTML = `
+        <div class="card-media">
+          <img src="${prod.imagen || 'placeholder.jpg'}" alt="${prod.nombre}" data-original="${prod.imagen || 'placeholder.jpg'}">
+        </div>
+
+        <div class="${esJuego ? 'card-content' : 'card-content2'}">
+          <div class="${esJuego ? 'inner-card' : 'inner-card2'}">
+            <h2>${prod.nombre}</h2>
+
+            <p class="short-desc">${prod.descripcion || ''}</p>
+
+            <div class="${esJuego ? 'precio' : 'precio2'}">$${(prod.precio || 0).toLocaleString()}</div>
+
+            <div class="extra-content">
+              <div class="extra-desc">
+                <h3>Descripción detallada</h3>
+                <p>${prod.descripcionDetallada ? prod.descripcionDetallada : (prod.descripcion || '')}</p>
+                <h4 style="margin-top:0.8rem;">Detalles</h4>
+                <p>${prod.detalles ? prod.detalles : 'No hay detalles adicionales.'}</p>
+                <p style="margin-top:0.6rem;"><strong>Unidades:</strong> ${prod.unidades || 0}</p>
               </div>
 
+              <div class="extra-gallery" aria-hidden="true">
+                ${thumbsHtml}
+              </div>
+
+              <div class="expanded-footer">
+                <div class="precio-expanded">$${(prod.precio || 0).toLocaleString()}</div>
+                <button class="add-to-cart-btn" data-nombre="${prod.nombre}" data-precio="${prod.precio || 0}">
+                  🛒 Añadir al carrito
+                </button>
+              </div>
             </div>
+
           </div>
+        </div>
 
-          <button class="close-btn" aria-label="Cerrar">✖</button>
-        `;
+        <button class="close-btn" aria-label="Cerrar">✖</button>
+      `;
 
-        contenedor.appendChild(card);
-      });
+      contenedor.appendChild(card);
+      createdCards.push({ card, product: prod });
+    });
 
-    /* ----------------- AFTER INSERT: BIND EVENTS ----------------- */
-
-    // A) botones añadir al carrito (evitar propagación para que no expandan la tarjeta)
+    /* ------- After insert: bind events (añadir carrito, expand, thumbs, close) ------- */
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
-        e.stopPropagation(); // evita que el click en el botón expanda la tarjeta
+        e.stopPropagation();
         const card = btn.closest('.card, .card2');
         const nombre = btn.dataset.nombre;
         const precio = Number(btn.dataset.precio);
@@ -292,59 +662,18 @@ async function cargarProductos(filtroCategoria = null) {
       });
     });
 
-    // B) lógica de expansión / contraer tarjetas (una a la vez)
     const cards = document.querySelectorAll('.card, .card2');
     cards.forEach(card => {
-      // click en la tarjeta expande (si no está expandida)
       card.addEventListener('click', (e) => {
-        // si el click vino desde dentro de un botón / link lo ignoramos
         if (e.target.closest('button') || e.target.tagName === 'A' || e.target.closest('.add-to-cart-btn')) return;
-
-        // si ya está expandida, nada (cerrar desde el botón)
         if (card.classList.contains('expanded')) return;
-
-        // contraer cualquier otra expandida
-        document.querySelectorAll('.card.expanded, .card2.expanded').forEach(other => {
-          // antes de contraer, restaurar la imagen principal al original
-          const mainImgOther = other.querySelector('.card-media img');
-          if (mainImgOther && mainImgOther.dataset && mainImgOther.dataset.original) {
-            mainImgOther.setAttribute('src', mainImgOther.dataset.original);
-          }
-          other.classList.remove('expanded');
-        });
-
-        // expandir esta
-        card.classList.add('expanded');
-
-        // al expandir, asegurarnos que la imagen grande sea la original (no una miniatura previa)
-        const mainImg = card.querySelector('.card-media img');
-        if (mainImg && mainImg.dataset && mainImg.dataset.original) {
-          mainImg.setAttribute('src', mainImg.dataset.original);
-        }
-
-        // manejar miniaturas: marcar como seleccionada la que coincide con original
-        const thumbs = Array.from(card.querySelectorAll('.extra-gallery img'));
-        thumbs.forEach(t => t.classList.remove('selected'));
-        const originalSrc = card.querySelector('.card-media img').dataset.original;
-        const match = thumbs.find(t => t.dataset.src === originalSrc || t.getAttribute('src') === originalSrc);
-        if (match) match.classList.add('selected');
-        else if (thumbs[0]) thumbs[0].classList.add('selected');
-
-        // opción: scrollear suavemente para centrar un poco en viewport
-        setTimeout(() => {
-          const rect = card.getBoundingClientRect();
-          if (rect.top < 0 || rect.bottom > (window.innerHeight || document.documentElement.clientHeight)) {
-            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          }
-        }, 120);
+        expandCard(card);
       });
 
-      // close button dentro de la card
       const closeBtn = card.querySelector('.close-btn');
       if (closeBtn) {
         closeBtn.addEventListener('click', (ev) => {
           ev.stopPropagation();
-          // restaurar imagen principal al original antes de cerrar
           const mainImg = card.querySelector('.card-media img');
           if (mainImg && mainImg.dataset && mainImg.dataset.original) {
             mainImg.setAttribute('src', mainImg.dataset.original);
@@ -353,36 +682,48 @@ async function cargarProductos(filtroCategoria = null) {
         });
       }
 
-      // C) thumbnails: delegación por card
       const gallery = card.querySelector('.extra-gallery');
       if (gallery) {
-        // seleccionar thumbnails
         gallery.querySelectorAll('img').forEach(thumb => {
-          // stop propagation & click handler
           thumb.addEventListener('click', (ev) => {
             ev.stopPropagation();
-            // solo actúa si la tarjeta está expandida
             if (!card.classList.contains('expanded')) return;
             const src = thumb.dataset.src || thumb.getAttribute('src');
             const mainImg = card.querySelector('.card-media img');
             if (!mainImg) return;
-
-            // visual: seleccion
             gallery.querySelectorAll('img').forEach(t => t.classList.remove('selected'));
             thumb.classList.add('selected');
 
-            // animación: fade out -> change src -> fade in
             mainImg.style.opacity = '0';
-            // cuando cargue la nueva imagen, hacer fade in
-            mainImg.onload = () => {
-              // small delay to avoid flicker
-              setTimeout(() => mainImg.style.opacity = '1', 30);
-            };
+            mainImg.onload = () => { setTimeout(() => mainImg.style.opacity = '1', 30); };
             mainImg.setAttribute('src', src);
           });
         });
       }
     });
+
+    // manejar ?expand=Nombre en la URL
+    const params = new URLSearchParams(window.location.search);
+    const expandParam = params.get('expand');
+    if (expandParam) {
+      const decoded = decodeURIComponent(expandParam);
+      setTimeout(() => {
+        let found = null;
+        for (let item of createdCards) {
+          const nameEl = item.card.querySelector('h2');
+          if (nameEl && nameEl.textContent.trim() === decoded.trim()) { found = item.card; break; }
+        }
+        if (!found) {
+          for (let item of createdCards) {
+            const nameEl = item.card.querySelector('h2');
+            if (nameEl && nameEl.textContent.trim().toLowerCase() === decoded.trim().toLowerCase()) { found = item.card; break; }
+          }
+        }
+        if (found) expandCard(found);
+      }, 120);
+    }
+
+    updateSortIndicatorText();
 
   } catch (err) {
     console.error('Error cargando productos.json:', err);
@@ -390,23 +731,23 @@ async function cargarProductos(filtroCategoria = null) {
 }
 
 /* ===========================
-   Carga dinámica header/footer y arranque
+   Carga header/footer e inicialización general
    =========================== */
-
 document.addEventListener('DOMContentLoaded', () => {
-  // header
+  // cargar header
   fetch('header.html')
     .then(r => r.text())
     .then(html => {
       const h = document.getElementById('header-container');
       if (h) {
         h.innerHTML = html;
-        // inicializamos carrito una vez el header esté presente en DOM
         inicializarCarrito();
-
-        // inicializar menu hamburguesa si está definido en header
         if (typeof inicializarMenuHamburguesa === 'function') {
           try { inicializarMenuHamburguesa(); } catch (e) { console.warn('Error iniciando menu hamburguesa', e); }
+        }
+        // inicializar búsqueda (una vez header presente)
+        if (typeof inicializarBusqueda === 'function') {
+          try { inicializarBusqueda(); } catch (e) { console.warn('Error iniciando búsqueda', e); }
         }
       } else {
         console.warn('#header-container no encontrado; header no inyectado.');
@@ -414,7 +755,7 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => console.error('Error cargando header.html', err));
 
-  // footer
+  // cargar footer
   fetch('footer.html')
     .then(r => r.text())
     .then(html => {
@@ -423,14 +764,13 @@ document.addEventListener('DOMContentLoaded', () => {
     })
     .catch(err => console.error('Error cargando footer.html', err));
 
-  // productos: intenta cargar catálogo si existe contenedor
+  // cargar productos si corresponde
   cargarProductos();
 });
 
 /* ===========================
-   Menu hamburguesa: función que será llamada tras inyectar header
+   Menu hamburguesa (inicialización)
    =========================== */
-
 function inicializarMenuHamburguesa() {
   const hamburguesaBtn = document.getElementById('hamburguesa-btn');
   const mobileMenu = document.getElementById('mobile-menu');
@@ -438,7 +778,6 @@ function inicializarMenuHamburguesa() {
   const overlay = document.getElementById('menu-overlay');
 
   if (!hamburguesaBtn || !mobileMenu || !cerrarMenu || !overlay) {
-    // no es crítico; simplemente el header no tiene los elementos esperados
     console.warn('⚠️ Elementos del menú móvil no encontrados');
     return;
   }
@@ -458,8 +797,7 @@ function inicializarMenuHamburguesa() {
     overlay.classList.remove('show');
   });
 
-  // cerrar al clicar en uno de los enlaces del menú mobile (navegación)
-  mobileMenu.querySelectorAll('a').forEach(a => {
+  mobileMenu.querySelectorAll('a, button.mobile-menu-item').forEach(a => {
     a.addEventListener('click', () => {
       mobileMenu.classList.remove('open');
       overlay.classList.remove('show');
@@ -468,15 +806,13 @@ function inicializarMenuHamburguesa() {
 }
 
 /* ===========================
-   Página de carrito (carrito.html) - renderizado del listado y checkout
+   Página carrito (carrito.html)
    =========================== */
-
 function cargarPaginaCarrito() {
   const lista = document.getElementById('carrito-lista');
-  if (!lista) return; // si no estamos en carrito.html
+  if (!lista) return;
 
   let carritoLocal = JSON.parse(localStorage.getItem('carrito')) || [];
-  // referencia local para renderizado dentro de esta función
   let carritoLocalCopy = carritoLocal;
 
   function renderCarrito() {
@@ -511,10 +847,9 @@ function cargarPaginaCarrito() {
         const i = Number(btn.getAttribute('data-index'));
         carritoLocalCopy.splice(i, 1);
         localStorage.setItem('carrito', JSON.stringify(carritoLocalCopy));
-        // actualizar global carrito para mantener consistencia con header popup
         carrito = carritoLocalCopy.slice();
         renderCarrito();
-        actualizarCarritoUI(); // actualiza icono en header
+        actualizarCarritoUI();
       });
     });
   }
@@ -532,7 +867,6 @@ function cargarPaginaCarrito() {
 
   renderCarrito();
 
-  // manejar envío del formulario (solo mostrar mensaje por ahora)
   const form = document.getElementById('checkoutForm');
   if (form) {
     form.addEventListener('submit', (e) => {
@@ -545,6 +879,4 @@ function cargarPaginaCarrito() {
     });
   }
 }
-
-/* cuando se cargue la página, ejecutamos la función para la página carrito si corresponde */
 window.addEventListener('DOMContentLoaded', cargarPaginaCarrito);

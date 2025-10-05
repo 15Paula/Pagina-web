@@ -3,21 +3,528 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Inicio</title>
+  <title>Inicio - Tienda</title>
   <link rel="stylesheet" href="style.css"/>
+  <style>
+    /* ---------- CARRUSEL DESTACADOS (estilos propios) ---------- */
+    .section-title {
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 900;
+      color: #1B142E;
+      letter-spacing: -0.3px;
+    }
+    .section-title .subline {
+      display: block;
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #555;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+
+    .carousel-root {
+      width: 100%;
+      max-width: 1200px;
+      margin: 0.6rem auto 1.4rem auto;
+      position: relative;
+      overflow: visible;
+      padding: 0 8px;
+    }
+
+    .carousel {
+      display: flex;
+      align-items: stretch;
+      gap: 1rem;
+      background: transparent;
+      border-radius: 12px;
+      overflow: visible;
+      height: 620px; /* altura desktop */
+      box-shadow: 0 8px 28px rgba(0,0,0,0.08);
+    }
+
+    .slide {
+      display: flex;
+      width: 100%;
+      align-items: stretch;
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .slide-media {
+      flex: 0 0 60%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #f2f2f2;
+      overflow: hidden;
+      min-height: 100%;
+      position: relative; /* para overlay */
+    }
+    .slide-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      transition: transform 300ms ease;
+    }
+
+    .media-overlay {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.6rem 1rem;
+      background: rgba(0,0,0,0.42);
+      color: white;
+      backdrop-filter: blur(4px);
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+    .media-overlay .overlay-title {
+      font-weight: 800;
+      font-size: 1rem;
+      line-height: 1.05;
+    }
+    .media-overlay .overlay-actions {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .media-overlay .overlay-price {
+      font-weight: 800;
+      font-size: 0.95rem;
+      color: #fff;
+      opacity: 0.98;
+      margin-right: 0.6rem;
+    }
+    .media-overlay .overlay-add {
+      background: rgba(255,255,255,0.12);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: white;
+      padding: 0.4rem 0.65rem;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .media-overlay .overlay-add:hover {
+      background: rgba(255,255,255,0.18);
+    }
+
+    .slide-content {
+      flex: 1;
+      padding: 2.2rem 1.8rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0.9rem;
+    }
+    .slide-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #1B142E;
+      margin-bottom: 0.2rem;
+    }
+    .slide-desc {
+      font-size: 1rem;
+      color: #444;
+      line-height: 1.45;
+      max-height: 7.2rem;
+      overflow: hidden;
+    }
+
+    .slide-actions {
+      margin-top: 0.8rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+    }
+    .slide-actions .precio {
+      font-weight: 900;
+      font-size: 1.05rem;
+      color: #1B142E;
+      margin-left: auto;
+    }
+    .slide-actions .add-btn {
+      background: #D45510;
+      color: white;
+      border: none;
+      padding: 0.6rem 0.9rem;
+      border-radius: 10px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* Flechas nav */
+    .nav-arrow {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: rgba(27,20,46,0.10);
+      color: rgba(27,20,46,0.9);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      cursor: pointer;
+      z-index: 30;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+      transition: transform 0.12s ease, background 0.12s ease, color 0.12s ease;
+      user-select: none;
+      border: 1px solid rgba(27,20,46,0.06);
+    }
+    .nav-arrow:hover {
+      transform: translateY(-50%) scale(1.06);
+      background: rgba(27,20,46,0.18);
+      color: white;
+    }
+    .nav-left { left: 8px; }
+    .nav-right { right: 8px; }
+
+    /* Indicadores (dots) */
+    .carousel-dots {
+      display:flex;
+      gap:0.5rem;
+      justify-content:center;
+      margin-top:0.8rem;
+    }
+    .carousel-dots button {
+      width:10px;height:10px;border-radius:50%;border:none;background:rgba(0,0,0,0.14);cursor:pointer;
+    }
+    .carousel-dots button.active { background:#1B142E; transform:scale(1.15); }
+
+    /* ---------- VERSION MOVIL ---------- */
+    @media (max-width: 768px) {
+      .carousel { height: auto; }
+      .slide { flex-direction: column; height: auto; }
+      .slide-media { flex: none; width: 100%; height: 62vw; }
+      .slide-media img { width: 100%; height: 100%; object-fit: cover; }
+      .slide-content {
+        padding: 0.6rem 1rem 1rem 1rem;
+        text-align: center;
+      }
+      .slide-title { font-size: 1.05rem; }
+      .slide-desc { display: none; }
+      .slide-actions { justify-content: center; gap: 0.6rem; }
+      .slide-actions .precio { margin-left: 0; display: none; }
+      .nav-left { left: 8px; }
+      .nav-right { right: 8px; }
+      .nav-arrow { width:40px; height:40px; font-size: 1.05rem; }
+      .carousel-root { padding: 0 0.5rem; }
+
+      /* mostramos el overlay en móvil */
+      .media-overlay { display:flex; }
+    }
+
+    /* En desktop ocultamos el overlay por defecto (sólo móvil lo muestra) */
+    @media (min-width: 769px) {
+      .media-overlay { display: none; }
+    }
+
+    /* ---------- SOBRE NOSOTROS ---------- */
+    .about {
+      max-width: 1000px;
+      margin: 1.6rem auto;
+      padding: 1.6rem;
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 6px 20px rgba(0,0,0,0.06);
+      color: #222;
+      line-height: 1.6;
+      text-align: left;
+    }
+    .about .about-inner {
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      gap: 1.2rem;
+      align-items: center;
+    }
+    .about h2 {
+      font-size: 1.25rem;
+      color: #1B142E;
+      margin-bottom: 0.6rem;
+      text-align: center;
+      letter-spacing: 0.6px;
+      font-weight: 900;
+    }
+    .about .lead {
+      font-weight: 700;
+      font-size: 1.02rem;
+      color: #333;
+      margin-bottom: 0.6rem;
+    }
+    .about .mission {
+      background: linear-gradient(180deg, rgba(212,85,16,0.06), rgba(0,0,0,0.02));
+      border-left: 4px solid rgba(212,85,16,0.9);
+      padding: 0.8rem;
+      border-radius: 8px;
+    }
+    @media (max-width: 900px) {
+      .about .about-inner { grid-template-columns: 1fr; }
+      .about h2 { text-align: left; }
+    }
+
+    .values { max-width: 1000px; margin: 1rem auto 2rem; display:grid; grid-template-columns: repeat(3,1fr); gap:0.9rem; }
+    @media (max-width:900px){ .values { grid-template-columns: 1fr; } }
+
+    .sr-only { position:absolute !important; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  </style>
 </head>
 <body>
   <div id="header-container"></div>
 
   <main>
-    <section class="hero">
-      <h1>¡Bienvenido a nuestra tienda!</h1>
-      <p>Explora nuestros juegos didácticos y decoraciones únicas ✨</p>
-      <a href="catalogo.html" class="cta-btn">Ver catálogo</a>
+    <!-- TÍTULO DE LA ZONA DE PRODUCTOS -->
+    <h2 class="section-title">PRODUCTOS DESTACADOS <span class="subline">Lo mejor para tus celebraciones</span></h2>
+
+    <!-- CARRUSEL DESTACADOS - primero en la página -->
+    <section class="carousel-root" aria-label="Productos destacados">
+      <div id="carousel" class="carousel" role="region" aria-roledescription="slide"></div>
+
+      <!-- flechas -->
+      <button id="prevBtn" class="nav-arrow nav-left" aria-label="Anterior">◀</button>
+      <button id="nextBtn" class="nav-arrow nav-right" aria-label="Siguiente">▶</button>
+
+      <!-- dots -->
+      <div id="carouselDots" class="carousel-dots" aria-hidden="false"></div>
+    </section>
+
+    <!-- SOBRE NOSOTROS -->
+    <section class="about" aria-labelledby="sobre-title">
+      <h2 id="sobre-title">SOBRE NOSOTROS</h2>
+      <div class="about-inner">
+        <div>
+          <p class="lead"><strong>Somos un emprendimiento dedicado a crear productos decorativos para fiestas y juegos didácticos, diseñados con creatividad, pasión y un toque nacional.</strong></p>
+
+          <p>Nos destacamos por ofrecer artículos fabricados localmente, con diseños únicos que aportan valor, diversión y significado a cada celebración.</p>
+
+          <div class="mission">
+            <p><strong>Nuestra misión:</strong> Llevar alegría y originalidad a cada evento mediante productos de calidad, accesibles y con identidad.</p>
+            <p><strong>Visión:</strong> Ser una referencia nacional en diseño festivo y productos didácticos, apoyando talento local y prácticas sostenibles.</p>
+          </div>
+        </div>
+
+        <div>
+          <div style="background:linear-gradient(135deg,#fff,#f8f8f8); border-radius:10px; padding:1rem; text-align:center;">
+            <p style="margin:0; font-weight:800; color:#1B142E;">Calidad & Diseño Local</p>
+            <p style="margin:0.6rem 0 0 0; color:#555;">Apoyamos la producción local y el detalle en cada pieza.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- pequeños valores -->
+    <section class="values" aria-label="Por qué elegirnos">
+      <div class="value-card">
+        <div class="icon">🎨</div>
+        <h4>Diseño creativo</h4>
+        <p>Productos pensados para destacar en cualquier celebración.</p>
+      </div>
+      <div class="value-card">
+        <div class="icon">🏭</div>
+        <h4>Producción local</h4>
+        <p>Apoyamos talleres y proveedores nacionales.</p>
+      </div>
+      <div class="value-card">
+        <div class="icon">🔒</div>
+        <h4>Calidad</h4>
+        <p>Materiales seguros y duraderos.</p>
+      </div>
     </section>
   </main>
 
   <div id="footer-container"></div>
+
+  <!-- scripts -->
   <script src="script.js"></script>
+  <script>
+    // Carrusel destacado - versión mejorada (flechas discretas, overlay en móvil, swipe)
+    (function(){
+      const carouselEl = document.getElementById('carousel');
+      const dotsEl = document.getElementById('carouselDots');
+      const prevBtn = document.getElementById('prevBtn');
+      const nextBtn = document.getElementById('nextBtn');
+
+      let slides = [];
+      let current = 0;
+
+      async function loadSlides() {
+        try {
+          const res = await fetch('productos.json');
+          if (!res.ok) return;
+          const productos = await res.json();
+          slides = productos.slice(0, 4);
+          if (slides.length === 0) {
+            carouselEl.innerHTML = '<div style="padding:2rem; text-align:center;">No hay productos destacados.</div>';
+            prevBtn.style.display = 'none';
+            nextBtn.style.display = 'none';
+            return;
+          }
+          renderSlide(current);
+          renderDots();
+          attachEvents();
+        } catch (err) {
+          console.error('Error cargando productos destacados:', err);
+        }
+      }
+
+      <!-- dentro del script de index.html: reemplaza renderSlide por esto -->
+      function renderSlide(index) {
+        const prod = slides[index];
+        // build slide
+        carouselEl.innerHTML = `
+          <article class="slide" data-index="${index}">
+            <div class="slide-media" aria-hidden="false">
+              <img class="slide-img-click" src="${prod.imagen || 'placeholder.jpg'}" alt="${prod.nombre}">
+              <!-- overlay: visible en movil -->
+              <div class="media-overlay" aria-hidden="false">
+                <div class="overlay-title">${prod.nombre}</div>
+                <div class="overlay-actions">
+                  <div class="overlay-price">$${(prod.precio || 0).toLocaleString()}</div>
+                  <button class="overlay-add" data-nombre="${prod.nombre}" data-precio="${prod.precio || 0}">Añadir</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="slide-content" aria-hidden="false">
+              <h3 class="slide-title">${prod.nombre}</h3>
+              <p class="slide-desc">${prod.descripcion || ''}</p>
+
+              <div class="slide-actions" aria-hidden="false">
+                <button class="add-btn" data-nombre="${prod.nombre}" data-precio="${prod.precio || 0}">🛒 Añadir al carrito</button>
+                <div class="precio">$${(prod.precio || 0).toLocaleString()}</div>
+              </div>
+            </div>
+          </article>
+        `;
+
+        // hacer la imagen clicable: redirige a la página de la categoría con expand
+        const img = carouselEl.querySelector('.slide-img-click');
+        if (img) {
+          img.style.cursor = 'pointer';
+          img.addEventListener('click', () => {
+            // redirige a la página de la categoría correspondiente
+            // ej: juegos.html?expand=Nombre%20del%20producto
+            const targetPage = (prod.categoria && prod.categoria.toLowerCase() === 'decoracion') ? 'decoracion.html'
+                              : (prod.categoria && prod.categoria.toLowerCase() === 'juegos') ? 'juegos.html'
+                              : 'catalogo.html';
+            const url = `${targetPage}?expand=${encodeURIComponent(prod.nombre)}`;
+            window.location.href = url;
+          });
+        }
+
+        // actualizar dots active
+        const dotButtons = dotsEl.querySelectorAll('button');
+        dotButtons.forEach((b,i)=> b.classList.toggle('active', i===index));
+      }
+
+      function renderDots() {
+        dotsEl.innerHTML = '';
+        slides.forEach((s, i) => {
+          const btn = document.createElement('button');
+          btn.setAttribute('aria-label', 'Ir al producto ' + (i+1));
+          btn.addEventListener('click', () => {
+            goTo(i);
+          });
+          if (i===0) btn.classList.add('active');
+          dotsEl.appendChild(btn);
+        });
+      }
+
+      function goTo(i) {
+        if (i < 0) i = slides.length - 1;
+        if (i >= slides.length) i = 0;
+        current = i;
+        renderSlide(current);
+      }
+
+      function next() { goTo(current + 1); }
+      function prev() { goTo(current - 1); }
+
+      function attachEvents() {
+        nextBtn.addEventListener('click', next);
+        prevBtn.addEventListener('click', prev);
+
+        // teclado
+        window.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowRight') next();
+          if (e.key === 'ArrowLeft') prev();
+        });
+
+        // delegación para botón añadir (tanto overlay como add-btn)
+        carouselEl.addEventListener('click', (e) => {
+          const overlayBtn = e.target.closest('.overlay-add');
+          const addBtn = e.target.closest('.add-btn');
+          const btn = overlayBtn || addBtn;
+          if (!btn) return;
+          e.stopPropagation();
+          const nombre = btn.dataset.nombre;
+          const precio = Number(btn.dataset.precio) || 0;
+          const img = carouselEl.querySelector('.slide-media img')?.getAttribute('src') || '';
+          if (typeof agregarAlCarrito === 'function') {
+            agregarAlCarrito({ nombre, precio, imagen: img });
+          } else {
+            console.warn('agregarAlCarrito no definida.');
+          }
+        });
+
+        // TOUCH: swipe con touchmove para mejor sensibilidad
+        let touchStartX = null;
+        let touchCurrentX = null;
+        let isTouching = false;
+
+        carouselEl.addEventListener('touchstart', (e) => {
+          if (!e.changedTouches || !e.changedTouches[0]) return;
+          touchStartX = e.changedTouches[0].screenX;
+          touchCurrentX = touchStartX;
+          isTouching = true;
+        }, {passive: true});
+
+        carouselEl.addEventListener('touchmove', (e) => {
+          if (!isTouching || !e.changedTouches || !e.changedTouches[0]) return;
+          touchCurrentX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        carouselEl.addEventListener('touchend', (e) => {
+          if (!isTouching) return;
+          const dx = (touchCurrentX || touchStartX) - touchStartX;
+          const threshold = 40; // px mínimo para considerar swipe
+          if (Math.abs(dx) > threshold) {
+            if (dx < 0) next(); else prev();
+          }
+          touchStartX = null;
+          touchCurrentX = null;
+          isTouching = false;
+        });
+
+        // Also support mouse drag (optional lightweight)
+        let mouseDown = false, mouseStartX = 0;
+        carouselEl.addEventListener('mousedown', (e) => {
+          mouseDown = true;
+          mouseStartX = e.screenX;
+        });
+        window.addEventListener('mouseup', (e) => {
+          if (!mouseDown) return;
+          const dx = e.screenX - mouseStartX;
+          const threshold = 50;
+          if (Math.abs(dx) > threshold) {
+            if (dx < 0) next(); else prev();
+          }
+          mouseDown = false;
+        });
+      }
+
+      // iniciar
+      loadSlides();
+    })();
+  </script>
 </body>
 </html>
