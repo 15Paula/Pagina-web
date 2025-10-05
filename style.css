@@ -523,7 +523,7 @@ footer .footer-icons {
   margin-top: 0.8rem;
   display: flex;
   justify-content: center;
-  gap: 2rem; /* separación mayor entre iconos */
+  gap: 12rem; /* separación mayor entre iconos */
 }
 
 footer .footer-icons img {
@@ -845,5 +845,207 @@ footer .footer-icons img:hover {
   .page-title {
     font-size: 2rem;
     margin: 2rem 0 1.5rem 0;
+  }
+}
+
+/* ──────────────── MENÚ HAMBURGUESA (MÓVIL) ──────────────── */
+.hamburguesa-btn {
+  display: none;
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.8rem;
+  cursor: pointer;
+}
+
+/* Panel lateral */
+.mobile-menu {
+  position: fixed;
+  top: 0;
+  left: -260px;
+  width: 260px;
+  height: 100vh;
+  background: white;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.2);
+  transition: left 0.3s ease;
+  z-index: 1001;
+  padding-top: 2rem;
+}
+
+.mobile-menu.open {
+  left: 0;
+}
+
+.mobile-menu .cerrar-menu {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+}
+
+.mobile-menu ul {
+  list-style: none;
+  padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.mobile-menu a {
+  color: #1B142E;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 1.1rem;
+}
+
+.mobile-menu a:hover {
+  color: #D45510;
+}
+
+/* Fondo oscuro al abrir menú */
+.menu-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.4);
+  z-index: 1000;
+}
+
+.menu-overlay.show {
+  display: block;
+}
+
+/* ──────────────── RESPONSIVE HEADER ──────────────── */
+@media (max-width: 768px) {
+  nav {
+    justify-content: space-between;
+  }
+
+  .menu {
+    display: none; /* escondemos menú normal */
+  }
+
+  .hamburguesa-btn {
+    display: block; /* mostramos botón hamburguesa */
+  }
+
+  .logo {
+    flex: 1;
+    text-align: center;
+  }
+
+  .user-actions {
+    gap: 0.5rem;
+  }
+
+  .perfil-container {
+    display: none; /* ocultamos perfil aquí, ya está dentro del menú lateral */
+  }
+}
+
+/* ──────────────── CARRITO MÓVIL ──────────────── */
+@media (max-width: 768px) {
+  #cart-btn {
+    transition: all 0.3s ease;
+    background: none;
+    border: none;
+    font-size: 1.2rem;
+    cursor: pointer;
+  }
+
+  #cart-btn.ver-carrito-activo {
+    background: #D45510;
+    color: white;
+    padding: 0.4rem 0.7rem;
+    border-radius: 20px;
+    font-weight: 500;
+  }
+
+  #cart-popup {
+    position: absolute;
+    right: 1rem;
+    top: 3.5rem;
+    width: 85%;
+    max-width: 300px;
+    display: none;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+    z-index: 50;
+  }
+}
+
+/* ──────────────── FOOTER GENERAL ──────────────── */
+footer {
+  background: white;
+  color: #333;
+  text-align: center;
+  padding: 2rem 1rem;
+  border-top: 1px solid #ddd;
+  position: relative;
+  bottom: 0;
+  width: 100%;
+}
+
+footer .footer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+footer .footer-container h2.contact-text {
+  font-size: 1.2rem;
+  margin-bottom: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+footer .footer-icons {
+  display: flex;
+  flex-direction: row;   /* Horizontal en desktop */
+  gap: 4rem;            /* 👈 Espaciado amplio entre iconos */
+  justify-content: center;
+  align-items: center;
+}
+
+footer .footer-icons img {
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+
+footer .footer-icons img:hover {
+  transform: scale(1.1);
+}
+
+/* ──────────────── FOOTER - VERSIÓN MÓVIL ──────────────── */
+@media (max-width: 768px) {
+  footer {
+    padding: 1rem;              /* ⬅️ Menos espacio vertical */
+    font-size: 0.85rem;         /* ⬅️ Texto más pequeño */
+  }
+
+  footer .footer-container h2.contact-text {
+    font-size: 1rem;           
+    margin-bottom: 0.5rem;
+  }
+
+  footer .footer-icons {
+    flex-direction: row;       /* ⬅️ Importante: fila horizontal */
+    gap: 2rem;                 /* ⬅️ Un poco más juntos que escritorio */
+    justify-content: center;
+  }
+
+  footer .footer-icons img {
+    width: 20px;               /* ⬅️ Iconos más pequeños */
+    height: 20px;
   }
 }

@@ -1,38 +1,53 @@
-/* script.js - carrito, carga dinámica de catálogo/header/footer
-   + expansión en flujo de tarjetas (una a la vez)
-   + galería horizontal en modo expandido (reemplaza imagen principal solo en expanded)
-*/
 
-// --- Estado del carrito (persistente) ---
+/* ===========================
+   Estado inicial y utilidades
+   =========================== */
+
 let carrito = JSON.parse(localStorage.getItem('carrito')) || [];
 
-// -------------------- FUNCIONES DEL CARRITO --------------------
+/* Guardar carrito en localStorage y actualizar UI del header (si existe) */
 function guardarCarrito() {
   localStorage.setItem('carrito', JSON.stringify(carrito));
   actualizarCarritoUI();
 }
 
+/* Agregar producto al carrito (objeto con {nombre, precio, imagen?}) */
 function agregarAlCarrito(producto) {
   carrito.push(producto);
   guardarCarrito();
 }
 
+/* Eliminar producto por índice */
 function eliminarDelCarrito(index) {
   carrito.splice(index, 1);
   guardarCarrito();
 }
 
-// referencias del DOM (serán inicializadas por inicializarCarrito)
+/* ===========================
+   Referencias DOM del header
+   (se inicializan en inicializarCarrito)
+   =========================== */
+
 let carritoContainer = null;
 let carritoBtn = null;
 let carritoCount = null;
 let carritoPopup = null;
 
-// Actualiza UI del popup y contador (seguro para llamar aunque header no exista aún)
+/* Flag para control móvil: primer toque abre, segundo toque redirige */
+let carritoAbiertoEnMovil = false;
+
+/* ===========================
+   Actualizar UI del popup y contador
+   =========================== */
+
 function actualizarCarritoUI() {
-  if (!carritoCount || !carritoPopup) return; // si header aún no cargó
+  // Si el header no está inyectado todavía, salimos (se actualizará cuando se inicialice)
+  if (!carritoCount || !carritoPopup) return;
+
+  // contador
   carritoCount.textContent = carrito.length;
 
+  // limpiar popup
   carritoPopup.innerHTML = '';
 
   if (carrito.length === 0) {
@@ -41,14 +56,17 @@ function actualizarCarritoUI() {
   }
 
   let total = 0;
+
   carrito.forEach((p, index) => {
-    total += p.precio || 0;
+    const precio = Number(p.precio) || 0;
+    total += precio;
+
     const item = document.createElement('div');
     item.classList.add('carrito-item');
     item.innerHTML = `
       <div class="carrito-item-info">
         <span class="carrito-nombre">${p.nombre}</span>
-        <span class="carrito-precio">$${(p.precio || 0).toLocaleString()}</span>
+        <span class="carrito-precio">$${precio.toLocaleString()}</span>
       </div>
       <button class="remove-btn" data-index="${index}" title="Eliminar">✖️</button>
     `;
@@ -60,72 +78,128 @@ function actualizarCarritoUI() {
   totalDiv.innerHTML = `<strong>Total:</strong> <span>$${total.toLocaleString()}</span>`;
   carritoPopup.appendChild(totalDiv);
 
-  // Activar listeners de eliminar (se vuelven a crear cada vez)
+  // listeners de eliminar (se recrean cada vez que actualizamos)
   carritoPopup.querySelectorAll('.remove-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
-      e.stopPropagation(); // importante: no propagar
+      e.stopPropagation(); // muy importante: no cerrar popup ni propagar
       const idx = Number(btn.dataset.index);
       eliminarDelCarrito(idx);
     });
   });
 }
 
-// Inicializa referencias del header y controla el show/hide del popup con mouseenter/leave
+/* ===========================
+   Inicializar carrito (header)
+   =========================== */
+
 function inicializarCarrito() {
-  // Buscar elementos en header (ya inyectado)
+  // Obtener referencias del header inyectado
   carritoContainer = document.querySelector('.carrito-container');
   carritoBtn = document.getElementById('carrito-btn');
   carritoCount = document.getElementById('carrito-count');
   carritoPopup = document.getElementById('carrito-popup');
 
-  // Si no existen elementos (por ejemplo en admin.html) salimos
+  // Si no existen elementos, salimos (por ejemplo en admin.html donde no usas header)
   if (!carritoContainer || !carritoBtn || !carritoCount || !carritoPopup) {
     console.warn('Elementos del carrito no encontrados (header probablemente no cargado).');
     return;
   }
 
-  // CLICK en el botón del carrito REDIRIGE a la página carrito
-  carritoBtn.addEventListener('click', () => {
-    window.location.href = 'carrito.html';
-  });
+  // --- COMPORTAMIENTO ESPECIAL PARA MÓVIL ---
+  // click en el botón del carrito:
+  // - en móvil (<=768px): primer toque muestra popup y cambia texto del botón;
+  //   segundo toque redirige a carrito.html
+  // - en desktop: alterna popup (manteniendo el comportamiento hover)
+  carritoBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
 
-  // show/hide con pequeño delay para evitar cierres accidentales (hover behavior)
-  let hideTimeout = null;
-  function showPopup() {
-    if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-    carritoPopup.classList.add('open');
-  }
-  function hidePopup() {
-    carritoPopup.classList.remove('open');
-  }
+    // si estamos en móvil (o pantalla estrecha)
+    if (window.innerWidth <= 768) {
+      if (!carritoAbiertoEnMovil) {
+        // Primer toque: mostrar popup y transformar el botón
+        carritoPopup.classList.add('open');
+        carritoBtn.classList.add('ver-carrito-activo');
+        // Cambiamos el contenido visible del botón para que diga "Ver carrito completo"
+        // Si tu botón contiene icono junto al contador, conserva el contador y añade texto.
+        // Para ser conservador, solo añadimos texto al final.
+        carritoBtn.dataset.originalText = carritoBtn.innerHTML; // guardamos versión original
+        carritoBtn.innerHTML = `🛒 Ver carrito completo <span id="carrito-count">${carrito.length}</span>`;
+        carritoAbiertoEnMovil = true;
+        return;
+      } else {
+        // Segundo toque: redirigir a la página de carrito
+        window.location.href = 'carrito.html';
+        return;
+      }
+    }
 
-  carritoContainer.addEventListener('mouseenter', () => {
-    showPopup();
-  });
-  carritoContainer.addEventListener('mouseleave', () => {
-    hideTimeout = setTimeout(hidePopup, 180);
-  });
-
-  carritoPopup.addEventListener('mouseenter', () => {
-    if (hideTimeout) { clearTimeout(hideTimeout); hideTimeout = null; }
-    showPopup();
-  });
-  carritoPopup.addEventListener('mouseleave', () => {
-    hideTimeout = setTimeout(hidePopup, 180);
-  });
-
-  // cerrar popup si se hace click fuera (comodidad)
-  document.addEventListener('click', (e) => {
-    if (!carritoContainer.contains(e.target)) {
+    // En pantallas grandes (desktop), el click alternará el popup (como ya hacía antes)
+    if (carritoPopup.classList.contains('open')) {
       carritoPopup.classList.remove('open');
+    } else {
+      carritoPopup.classList.add('open');
     }
   });
 
-  // Actualizar UI con estado actual del carrito
+  // Hover behavior (solo desktop): mostrar/ocultar popup al pasar el mouse
+  // Esto hará que en desktop funcione con hover y click (click alterna también)
+  carritoContainer.addEventListener('mouseenter', () => {
+    if (window.innerWidth > 768) {
+      if (carritoPopup) carritoPopup.classList.add('open');
+    }
+  });
+  carritoContainer.addEventListener('mouseleave', () => {
+    if (window.innerWidth > 768) {
+      if (carritoPopup) carritoPopup.classList.remove('open');
+    }
+  });
+
+  // Si el usuario hace click fuera del carrito, cerramos popup y restauramos estado móvil
+  document.addEventListener('click', (e) => {
+    // si no existe contenedor, salimos
+    if (!carritoContainer) return;
+
+    // si el click no está dentro del carritoContainer, cerramos
+    if (!carritoContainer.contains(e.target)) {
+      if (carritoPopup) carritoPopup.classList.remove('open');
+      // si estábamos en modo móvil y el botón había cambiado, restauramos
+      if (carritoAbiertoEnMovil) {
+        carritoAbiertoEnMovil = false;
+        carritoBtn.classList.remove('ver-carrito-activo');
+        // restaurar texto original si lo guardamos
+        if (carritoBtn.dataset.originalText) {
+          carritoBtn.innerHTML = carritoBtn.dataset.originalText;
+        } else {
+          // fallback: poner icono y contador
+          carritoBtn.innerHTML = `🛒 <span id="carrito-count">${carrito.length}</span>`;
+        }
+      }
+    }
+  });
+
+  // Cuando se redimensiona la ventana, restauramos el estado si se pasa a desktop
+  window.addEventListener('resize', () => {
+    // cerrar popup en resize y restaurar botón si necesario
+    if (carritoPopup) carritoPopup.classList.remove('open');
+    if (window.innerWidth > 768) {
+      carritoAbiertoEnMovil = false;
+      carritoBtn.classList.remove('ver-carrito-activo');
+      if (carritoBtn.dataset.originalText) {
+        carritoBtn.innerHTML = carritoBtn.dataset.originalText;
+      } else {
+        carritoBtn.innerHTML = `🛒 <span id="carrito-count">${carrito.length}</span>`;
+      }
+    }
+  });
+
+  // Inicializar UI con estado actual del carrito
   actualizarCarritoUI();
 }
 
-// -------------------- CARGA DE PRODUCTOS DINÁMICA --------------------
+/* ===========================
+   Carga dinámica de productos
+   =========================== */
+
 async function cargarProductos(filtroCategoria = null) {
   try {
     const res = await fetch('productos.json');
@@ -141,8 +215,7 @@ async function cargarProductos(filtroCategoria = null) {
         const card = document.createElement('div');
         card.classList.add(esJuego ? 'card' : 'card2');
 
-        // TEMPLATE: tarjeta con close button y extra-content (oculto inicialmente)
-        // NOTA: extra-gallery contendrá la principal + extra images
+        // Construimos la lista de imágenes: principal + extras (evitamos duplicados)
         const imgs = [];
         if (prod.imagen) imgs.push(prod.imagen);
         if (Array.isArray(prod.imagenesExtra) && prod.imagenesExtra.length) {
@@ -151,7 +224,7 @@ async function cargarProductos(filtroCategoria = null) {
           });
         }
 
-        // Construir miniaturas HTML
+        // Miniaturas HTML para la galería (usadas en expandido)
         const thumbsHtml = imgs.map((src, idx) => {
           return `<img class="thumb" data-src="${src}" src="${src}" alt="thumb-${idx}">`;
         }).join('');
@@ -210,7 +283,6 @@ async function cargarProductos(filtroCategoria = null) {
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation(); // evita que el click en el botón expanda la tarjeta
-        // obtener el producto desde dataset nombre / precio y la imagen actual mostrada en la tarjeta
         const card = btn.closest('.card, .card2');
         const nombre = btn.dataset.nombre;
         const precio = Number(btn.dataset.precio);
@@ -317,7 +389,10 @@ async function cargarProductos(filtroCategoria = null) {
   }
 }
 
-// -------------------- CARGA DINÁMICA HEADER/FOOTER Y ARRANQUE --------------------
+/* ===========================
+   Carga dinámica header/footer y arranque
+   =========================== */
+
 document.addEventListener('DOMContentLoaded', () => {
   // header
   fetch('header.html')
@@ -328,6 +403,11 @@ document.addEventListener('DOMContentLoaded', () => {
         h.innerHTML = html;
         // inicializamos carrito una vez el header esté presente en DOM
         inicializarCarrito();
+
+        // inicializar menu hamburguesa si está definido en header
+        if (typeof inicializarMenuHamburguesa === 'function') {
+          try { inicializarMenuHamburguesa(); } catch (e) { console.warn('Error iniciando menu hamburguesa', e); }
+        }
       } else {
         console.warn('#header-container no encontrado; header no inyectado.');
       }
@@ -347,13 +427,56 @@ document.addEventListener('DOMContentLoaded', () => {
   cargarProductos();
 });
 
-// ──────────────── PÁGINA DE CARRITO ────────────────
+/* ===========================
+   Menu hamburguesa: función que será llamada tras inyectar header
+   =========================== */
+
+function inicializarMenuHamburguesa() {
+  const hamburguesaBtn = document.getElementById('hamburguesa-btn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const cerrarMenu = document.getElementById('cerrar-menu');
+  const overlay = document.getElementById('menu-overlay');
+
+  if (!hamburguesaBtn || !mobileMenu || !cerrarMenu || !overlay) {
+    // no es crítico; simplemente el header no tiene los elementos esperados
+    console.warn('⚠️ Elementos del menú móvil no encontrados');
+    return;
+  }
+
+  hamburguesaBtn.addEventListener('click', () => {
+    mobileMenu.classList.add('open');
+    overlay.classList.add('show');
+  });
+
+  cerrarMenu.addEventListener('click', () => {
+    mobileMenu.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+
+  overlay.addEventListener('click', () => {
+    mobileMenu.classList.remove('open');
+    overlay.classList.remove('show');
+  });
+
+  // cerrar al clicar en uno de los enlaces del menú mobile (navegación)
+  mobileMenu.querySelectorAll('a').forEach(a => {
+    a.addEventListener('click', () => {
+      mobileMenu.classList.remove('open');
+      overlay.classList.remove('show');
+    });
+  });
+}
+
+/* ===========================
+   Página de carrito (carrito.html) - renderizado del listado y checkout
+   =========================== */
+
 function cargarPaginaCarrito() {
   const lista = document.getElementById('carrito-lista');
   if (!lista) return; // si no estamos en carrito.html
 
   let carritoLocal = JSON.parse(localStorage.getItem('carrito')) || [];
-  // mantener referencia local para renderizado dentro de esta función
+  // referencia local para renderizado dentro de esta función
   let carritoLocalCopy = carritoLocal;
 
   function renderCarrito() {
@@ -367,7 +490,7 @@ function cargarPaginaCarrito() {
     }
 
     carritoLocalCopy.forEach((p, index) => {
-      subtotal += p.precio || 0;
+      subtotal += Number(p.precio) || 0;
       const item = document.createElement('div');
       item.className = 'carrito-item-page';
       item.innerHTML = `
@@ -375,7 +498,7 @@ function cargarPaginaCarrito() {
           <img src="${p.imagen || 'placeholder.jpg'}" alt="${p.nombre}">
           <span class="nombre">${p.nombre}</span>
         </div>
-        <div class="carrito-item-precio">$${(p.precio || 0).toLocaleString()}</div>
+        <div class="carrito-item-precio">$${(Number(p.precio) || 0).toLocaleString()}</div>
         <button class="remove-btn-page" data-index="${index}">✖</button>
       `;
       lista.appendChild(item);
@@ -399,9 +522,12 @@ function cargarPaginaCarrito() {
   function actualizarResumen(subtotal) {
     const impuestos = subtotal * 0.19;
     const total = subtotal + impuestos;
-    document.getElementById('subtotal').textContent = `$${subtotal.toLocaleString()}`;
-    document.getElementById('impuestos').textContent = `$${impuestos.toLocaleString()}`;
-    document.getElementById('total').textContent = `$${total.toLocaleString()}`;
+    const subtotalEl = document.getElementById('subtotal');
+    const impuestosEl = document.getElementById('impuestos');
+    const totalEl = document.getElementById('total');
+    if (subtotalEl) subtotalEl.textContent = `$${subtotal.toLocaleString()}`;
+    if (impuestosEl) impuestosEl.textContent = `$${impuestos.toLocaleString()}`;
+    if (totalEl) totalEl.textContent = `$${total.toLocaleString()}`;
   }
 
   renderCarrito();
@@ -420,5 +546,5 @@ function cargarPaginaCarrito() {
   }
 }
 
-// ejecuta al cargar la página (si es carrito.html)
+/* cuando se cargue la página, ejecutamos la función para la página carrito si corresponde */
 window.addEventListener('DOMContentLoaded', cargarPaginaCarrito);

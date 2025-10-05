@@ -1,9 +1,16 @@
 <header>
   <nav>
+    <!-- 🍔 Botón hamburguesa (solo visible en móvil) -->
+    <button id="hamburguesa-btn" class="hamburguesa-btn" aria-label="Abrir menú">
+      ☰
+    </button>
+
+    <!-- 🧿 Logo centrado -->
     <div class="logo">
-      <a href="index.html"><img src="logo.jpg" alt="logo"></a>
+      <a href="index.html"><img src="Imagenes/Logo.png" alt="logo"></a>
     </div>
 
+    <!-- 🧭 Menú de escritorio -->
     <div class="menu">
       <a href="index.html">INICIO</a>
       <a href="juegos.html">JUEGOS</a>
@@ -11,6 +18,7 @@
       <a href="catalogo.html">CATÁLOGO</a>
     </div>
 
+    <!-- 👤 Perfil y 🛒 Carrito -->
     <div class="user-actions">
       <div class="perfil-container" onclick="window.location.href='login.html'">
         <span class="perfil-icon">👤</span>
@@ -24,6 +32,19 @@
         <div id="carrito-popup" class="carrito-popup"></div>
       </div>
     </div>
-
   </nav>
+
+  <!-- 🌐 Panel lateral hamburguesa -->
+  <div id="mobile-menu" class="mobile-menu">
+    <button id="cerrar-menu" class="cerrar-menu">✖</button>
+    <ul>
+      <li><a href="juegos.html">Juegos</a></li>
+      <li><a href="decoracion.html">Decoración</a></li>
+      <li><a href="catalogo.html">Catálogo</a></li>
+      <li><a href="login.html">Iniciar sesión</a></li>
+    </ul>
+  </div>
+
+  <!-- Fondo oscuro detrás del menú -->
+  <div id="menu-overlay" class="menu-overlay"></div>
 </header>
