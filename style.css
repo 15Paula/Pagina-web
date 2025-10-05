@@ -61,17 +61,31 @@ nav {
   gap: 1rem;
 }
 
-.user-actions img {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  object-fit: cover;
+/* perfil icon (reemplaza imagen) */
+.perfil-container {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: white;
+  transition: transform 0.2s ease, opacity 0.2s ease;
 }
 
-.user-actions img:hover {
-  transform: scale(1.1);
+.perfil-container:hover {
+  transform: translateY(-2px);
+  opacity: 0.85;
+}
+
+.perfil-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.perfil-text {
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 
 /* ──────────────── 🛒 CARRITO POPUP ──────────────── */
@@ -171,50 +185,74 @@ nav {
 main {
   flex: 1;
   padding: 2rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  align-items: center;
 }
 
 .page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 1.5rem;
+  font-size: 2.8rem;
+  font-weight: 800;
   text-align: center;
+  color: #1a1a1a;
+  margin: 3rem 0 2.5rem 0;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  position: relative;
 }
 
-/* ──────────────── TARJETAS DE PRODUCTO ──────────────── */
+.page-title::after {
+  content: "";
+  display: block;
+  height: 3px;
+  width: 140px;
+  background: rgba(0, 0, 0, 0.12);
+  margin: 1rem auto 0 auto;
+  border-radius: 1px;
+}
+
+/* ──────────────── TARJETAS DE PRODUCTO (LISTA CENTRADA) ──────────────── */
 .catalogo-grid {
+  width: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+  padding-bottom: 2rem;
 }
 
-/* tarjeta: fila flex (imagen | contenido) y alto fijo */
+/* tarjeta: fila flex (imagen | contenido) y alto base */
 .card, .card2 {
   display: flex;
   gap: 1rem;
   border-radius: 20px;
   overflow: hidden;
   box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  transition: all 0.45s cubic-bezier(.2,.9,.2,1);
   width: 90%;
   max-width: 700px;
   min-width: 300px;
-  height: 260px;   /* altura fija */
-  cursor: arrow;
+  height: 280px;   /* <-- aumentado de 260px a 320px para más espacio vertical */
+  cursor: pointer;
   align-items: stretch;
+  position: relative; /* necesario para close button absoluto */
+  margin: 0 auto;
 }
 
+/* hover ligero para indicar clic */
 .card:hover, .card2:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+  transform: translateY(-6px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.14);
 }
 
+/* colores por categoría */
 .card { background: linear-gradient(to right, #1B142E, #584094); }
 .card2 { background: linear-gradient(to right, #642B0B, #D45510); }
 
 /* contenedor de imagen */
 .card-media {
-  flex: 0 0 40%;
+  flex: 0 0 45%; /* <-- reducido de 40% a 35% para dar más espacio al texto */
   height: 100%;
   overflow: hidden;
 }
@@ -224,6 +262,7 @@ main {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: opacity 200ms ease;
 }
 
 /* contenido */
@@ -234,9 +273,12 @@ main {
   flex-direction: column;
   justify-content: center;
   height: 100%;
+  color: white;
 }
 
 .inner-card, .inner-card2 {
+  position: relative;        /* referencia para .precio absoluto */
+  padding-bottom: 3.2rem;
   background: rgba(0,0,0,0.25);
   border-radius: 10px;
   padding: 1rem;
@@ -246,27 +288,42 @@ main {
   flex-direction: column;
 }
 
+/* título y texto */
 .inner-card h2, .inner-card2 h2 {
   color: white;
   font-size: 1.2rem;
   margin-bottom: .5rem;
 }
 
-.inner-card p, .inner-card2 p {
+/* --- DESCRIPCIÓN CORTA: visible en colapsado, limitada en tamaño --- */
+.short-desc {
   font-size: .95rem;
   color: white;
   margin-bottom: 0.6rem;
-  overflow: auto;
-  flex: 1;
+  overflow: hidden;
+  max-height: 10rem; /* <-- aumentado para permitir más líneas visibles */
+  line-height: 1.2;
 }
 
+/* el precio que se muestra en vista normal (oculto en expandido) */
 .precio, .precio2 {
+  position: absolute;
+  bottom: 0.9rem;    /* separación desde la base del .inner-card */
+  right: 1rem;       /* separación desde la derecha del .inner-card */
+  margin: 0;
+  /* opciones estéticas (opcional): una pequeña "placa" para que el precio destaque */
+  background: rgba(0,0,0,0.18); /* muy sutil, quítalo si no quieres fondo */
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+  font-weight: 800;
+  z-index: 5;
   font-weight: bold;
   text-align: right;
   color: white;
   margin-top: 0.5rem;
 }
 
+/* botón base (solo visible en expandido; la clase .add-to-cart-btn se usa in footer expandido) */
 .add-to-cart-btn {
   background: white;
   color: #222;
@@ -278,8 +335,141 @@ main {
   transition: background 0.2s ease;
 }
 
+/* hover para botones */
 .add-to-cart-btn:hover {
   background: #ddd;
+}
+
+/* ──────────────── EXPANSIÓN DE TARJETA (EN FLUJO) ──────────────── */
+/* la tarjeta expandida empuja a las demás, crece y muestra contenido extra */
+.card.expanded, .card2.expanded {
+  width: 95%;
+  max-width: 1000px;
+  height: 70vh; /* grande pero en flujo: empuja hacia abajo */
+  min-height: 520px;
+  transform: none;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+}
+
+/* ocultar el precio normal cuando está expandida (porque lo mostramos abajo) */
+.card.expanded .precio, .card2.expanded .precio,
+.card.expanded .precio2, .card2.expanded .precio2 {
+  display: none;
+}
+
+/* centrar el título SOLO en modo expandido */
+.card.expanded .inner-card h2, .card2.expanded .inner-card2 h2 {
+  text-align: center;
+}
+
+/* ocultar descripción corta en modo expandido */
+.card.expanded .short-desc, .card2.expanded .short-desc {
+  display: none;
+}
+
+/* cuando está expandida, mostramos el botón cerrar */
+.card .close-btn, .card2 .close-btn {
+  display: none;
+}
+.card.expanded .close-btn, .card2.expanded .close-btn {
+  display: block;
+}
+
+/* botón de cierre absoluto en esquina superior izquierda */
+.close-btn {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(255,255,255,0.06);
+  border: none;
+  color: white;
+  font-size: 1.4rem;
+  padding: 6px 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.12s ease, background 0.12s ease;
+  z-index: 30;
+}
+.close-btn:hover { transform: scale(1.08); background: rgba(255,255,255,0.1); }
+
+/* contenido extra que aparece al expandir: lo hacemos flex-column para forzar el footer abajo */
+.extra-content {
+  display: none;
+  opacity: 0;
+  transition: opacity 0.35s ease 0.12s;
+  margin-top: 0.8rem;
+  flex: 1;
+  flex-direction: column;
+}
+
+/* cuando esté expandida, mostramos contenido extra */
+.card.expanded .extra-content,
+.card2.expanded .extra-content {
+  display: flex;
+  opacity: 1;
+}
+
+/* estructura dentro del extra-content:
+   - extra-desc (con descripcionDetallada, detalles, unidades) justo debajo del título
+   - galería horizontal
+   - footer expandido al final con precio y botón */
+.extra-desc {
+  color: white;
+  overflow: auto;
+  padding-right: 0.5rem;
+}
+
+/* galería horizontal de miniaturas (solo visible en expandido) */
+.extra-gallery {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+  padding-top: 0.6rem;
+  padding-bottom: 0.6rem;
+  align-items: center;
+}
+
+/* miniaturas */
+.extra-gallery img {
+  width: 84px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.12);
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  opacity: 0.95;
+}
+
+/* estado seleccionado */
+.extra-gallery img.selected {
+  border: 2px solid rgba(255,255,255,0.95);
+  transform: scale(1.04);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.2);
+}
+
+/* footer expandido: pegado abajo dentro del extra-content (margin-top:auto) */
+.expanded-footer {
+  margin-top: auto; /* empuja al final */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid rgba(255,255,255,0.08);
+}
+
+/* precio grande en footer expandido */
+.expanded-footer .precio-expanded {
+  font-weight: 800;
+  font-size: 1.05rem;
+}
+
+/* botón de añadir en footer expandido */
+.expanded-footer .add-to-cart-btn {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  font-weight: 800;
 }
 
 /* ──────────────── HERO (PÁGINA INICIO) ──────────────── */
@@ -333,7 +523,7 @@ footer .footer-icons {
   margin-top: 0.8rem;
   display: flex;
   justify-content: center;
-  gap: 12rem; /* ⬅️ Aumenté el espaciado entre iconos */
+  gap: 2rem; /* separación mayor entre iconos */
 }
 
 footer .footer-icons img {
@@ -345,7 +535,7 @@ footer .footer-icons img {
 }
 
 footer .footer-icons img:hover {
-  transform: scale(1.25) rotate(-5deg);
+  transform: scale(1.15);
 }
 
 /* ──────────────── PÁGINA DE CARRITO ──────────────── */
@@ -480,8 +670,7 @@ footer .footer-icons img:hover {
 }
 
 /* ──────────────── CHECKOUT (carrito.html) ──────────────── */
-
-/* 🔙 Botón volver */
+/* botón volver */
 .volver-btn {
   position: fixed;
   top: 15px;
@@ -499,7 +688,6 @@ footer .footer-icons img:hover {
   text-decoration: underline;
 }
 
-/* Formulario de tarjeta */
 .pago-doble {
   display: flex;
   gap: 1rem;
@@ -515,19 +703,16 @@ footer .footer-icons img:hover {
 }
 
 /* ──────────────── STYLES PARA LOGIN / AUTENTICACIÓN ──────────────── */
-
-/* Contenedor del body cuando usamos páginas de auth */
 .auth-body {
   display: flex !important;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 100vh; /* ocupa toda la ventana */
+  min-height: 100vh;
   padding: 2rem;
   background: linear-gradient(180deg, rgba(245,245,245,0.6), rgba(245,245,245,0.9));
 }
 
-/* Caja blanca central */
 .auth-container {
   width: 100%;
   max-width: 420px;
@@ -538,14 +723,12 @@ footer .footer-icons img:hover {
   text-align: center;
 }
 
-/* Título */
 .auth-container h1 {
   font-size: 1.6rem;
   margin-bottom: 1rem;
   color: #222;
 }
 
-/* Formulario */
 .auth-form {
   display: flex;
   flex-direction: column;
@@ -554,7 +737,6 @@ footer .footer-icons img:hover {
   text-align: left;
 }
 
-/* Labels */
 .auth-form label {
   display: block;
   font-size: 0.95rem;
@@ -563,7 +745,6 @@ footer .footer-icons img:hover {
   font-weight: 600;
 }
 
-/* Inputs */
 .auth-form input[type="email"],
 .auth-form input[type="password"],
 .auth-form input[type="text"],
@@ -580,20 +761,17 @@ footer .footer-icons img:hover {
   background: #fff;
 }
 
-/* Focus: color de la marca */
 .auth-form input:focus,
 .auth-form textarea:focus {
   border-color: #D45510;
   box-shadow: 0 0 0 6px rgba(212,85,16,0.08);
 }
 
-/* Botón primario */
 .auth-btn {
   margin-top: 0.6rem;
   background: #D45510;
   color: #fff;
   padding: 0.8rem 1rem;
-  border-radius: 10px;
   border: none;
   font-weight: 700;
   font-size: 1rem;
@@ -604,7 +782,6 @@ footer .footer-icons img:hover {
 .auth-btn:hover { background: #b3460d; transform: translateY(-2px); }
 .auth-btn:active { transform: translateY(0); }
 
-/* Switch / enlace */
 .auth-switch {
   margin-top: 1rem;
   font-size: 0.95rem;
@@ -622,78 +799,51 @@ footer .footer-icons img:hover {
   text-decoration: underline;
 }
 
-/* Pequeñas mejoras responsive */
-@media (max-width: 480px) {
-  .auth-container {
-    padding: 1.2rem;
-    border-radius: 12px;
-  }
-
-  .auth-container h1 {
-    font-size: 1.4rem;
+/* ──────────────── MEDIA QUERIES (BÁSICOS) ──────────────── */
+@media (max-width: 900px) {
+  .card.expanded, .card2.expanded {
+    width: 95%;
+    height: auto;
+    min-height: 520px;
   }
 }
 
-/* ──────────────── PERFIL EN HEADER ──────────────── */
-.perfil-container {
-  display: flex;
-  align-items: center;
-  gap: 0.3rem;
-  cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: white;
-  transition: transform 0.2s ease, opacity 0.2s ease;
-}
+@media (max-width: 768px) {
 
-.perfil-container:hover {
-  transform: translateY(-2px);
-  opacity: 0.85;
-}
+  .menu {
+    display: none;
+  }
 
-.perfil-icon {
-  font-size: 1.3rem;
-  line-height: 1;
-}
+  .catalogo-grid {
+    gap: 1.2rem;
+  }
 
-.perfil-text {
-  font-size: 0.9rem;
-  white-space: nowrap;
-}
+  .card, .card2 {
+    flex-direction: column;
+    height: auto;
+    min-height: 260px;
+  }
 
-/* ──────────────── TÍTULOS DE SECCIÓN  ──────────────── */
-.page-title {
-  font-size: 2.8rem;
-  font-weight: 800;
-  text-align: center;
-  color: #1a1a1a; /* negro elegante */
-  margin: 3rem 0 2.5rem 0;
-  letter-spacing: -0.5px; /* Apple-style kerning */
-  line-height: 1.2;
-  position: relative;
-}
+  .card-media {
+    width: 100%;
+    height: 200px;
+    flex: 0 0 auto;
+  }
 
-/* Línea elegante y sutil debajo */
-.page-title::after {
-  content: "";
-  display: block;
-  height: 3px;
-  width: 300px;
-  background: rgba(0, 0, 0, 0.15);
-  margin: 1rem auto 0 auto;
-  border-radius: 1px;
-}
+  .card.expanded, .card2.expanded {
+    width: 95%;
+    height: auto;
+    min-height: 520px;
+  }
 
-/* Sombras ligeras estilo Apple */
-.page-title {
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.05);
-}
+  /* footer icons in column on small screens */
+  footer .footer-icons {
+    flex-direction: column;
+    gap: 1rem;
+  }
 
-/* Responsive */
-@media (max-width: 600px) {
   .page-title {
     font-size: 2rem;
     margin: 2rem 0 1.5rem 0;
   }
 }
-
