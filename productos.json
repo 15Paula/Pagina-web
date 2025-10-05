@@ -114,7 +114,7 @@
     "precio": 20000,
     "unidades": 16,
     "categoria": "decoracion",
-    "imagen": "Imagenes/Guirnalda cumpleaños.jpg",
+    "imagen": "Imagenes/Guirnalda Cumpleaños.jpg",
     "imagenesExtra": [
       "Imagenes/Decoraciones feliz cumpleaños rosa .jpg",
       "Imagenes/Decoracion Feliz cumpleaños rosa.jpg"
@@ -128,10 +128,10 @@
     "precio": 20000,
     "unidades": 7,
     "categoria": "decoracion",
-    "imagen": "Imagenes/Decoracion feliz cumpleaños.jpg",
+    "imagen": "Imagenes/Decoracion Feliz cumpleaños.jpg",
     "imagenesExtra": [
-      "Imagenes/Feliz Cumpleaños dorado.jpg",
-      "Imagenes/Feliz cumpleaños rosa.jpg",
+      "Imagenes/Feliz cumpleaños dorado.jpg",
+      "Imagenes/Feliz Cumpleaños rosa.jpg",
       "Imagenes/Toppers cumpleaños.jpg"
     ],
     "detalles": "Material: cartón resistente con colores brillantes.\nEnvío: se entrega en empaque plano y seguro, con despacho nacional en 2 a 5 días hábiles."
@@ -143,7 +143,7 @@
     "precio": 21900,
     "unidades": 17,
     "categoria": "decoracion",
-    "imagen": "Imagenes/decoracion graduacion.jpg",
+    "imagen": "Imagenes/Decoracion graduacion.jpg",
     "imagenesExtra": [],
     "detalles": "Envío: producto empacado de forma segura en sobre protector, con entrega nacional en 2 a 5 días hábiles."
   },
@@ -167,7 +167,7 @@
     "categoria": "decoracion",
     "imagen": "Imagenes/Decoracion dia de la madre.jpg",
     "imagenesExtra": [
-      "Imagenes/guirnalda dia de la madre.jpg"
+      "Imagenes/Guirnalda dia de la madre.jpg"
     ],
     "detalles": "Material: cartón troquelado, impreso en colores vivos.\nEnvío: se entrega en empaque plano y seguro, con despacho nacional en 2 a 5 días hábiles."
   },
