@@ -1037,7 +1037,7 @@ footer .footer-container h2.contact-text {
 footer .footer-icons {
   display: flex;
   flex-direction: row;   /* Horizontal en desktop */
-  gap: 4rem;            /* 👈 Espaciado amplio entre iconos */
+  gap: 12rem;            /* 👈 Espaciado amplio entre iconos */
   justify-content: center;
   align-items: center;
 }
