@@ -6,17 +6,16 @@
   <title>Admin - Gestión de Productos</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    /* 🌐 Layout principal en filas horizontales */
     body.auth-body {
       display: grid;
-      grid-template-columns: 1.2fr 1.8fr; /* izquierda lista / derecha formulario */
+      grid-template-columns: 1.2fr 1.8fr;
       gap: 2rem;
       padding: 2rem;
       background: #f5f5f5;
       min-height: 100vh;
     }
 
-    /* 📋 Lista de productos */
+    /* Lista de productos */
     .lista-container {
       background: white;
       padding: 1rem;
@@ -62,7 +61,7 @@
     .crud-btn.edit { color: #007bff; }
     .crud-btn.delete { color: #ff3333; }
 
-    /* 📝 Panel de formulario */
+    /* Panel de formulario */
     .auth-container {
       background: white;
       padding: 1.5rem;
@@ -152,7 +151,7 @@
 </head>
 <body class="auth-body">
 
-  <!-- 📋 Lista de productos (izquierda) -->
+  <!-- Lista de productos (izquierda) -->
   <div class="lista-container">
     <h2>Lista de productos</h2>
     <table>
@@ -167,7 +166,7 @@
     </table>
   </div>
 
-  <!-- 📝 Formulario (derecha) -->
+  <!-- Formulario (derecha) -->
   <div class="auth-container">
     <h1 id="form-title">Añadir producto</h1>
 

@@ -868,7 +868,7 @@ footer .footer-icons img:hover {
   display: block;
   width: 100%;
   height: 3px;
-  background-color: #222; /* color de las líneas */
+  background-color: #222;
   border-radius: 3px;
   transition: transform 0.3s ease, opacity 0.3s ease;
 }
@@ -955,11 +955,11 @@ footer .footer-icons img:hover {
   }
 
   .menu {
-    display: none; /* escondemos menú normal */
+    display: none; 
   }
 
   .hamburguesa-btn {
-    display: block; /* mostramos botón hamburguesa */
+    display: block; 
   }
 
   .logo {
@@ -972,7 +972,7 @@ footer .footer-icons img:hover {
   }
 
   .perfil-container {
-    display: none; /* ocultamos perfil aquí, ya está dentro del menú lateral */
+    display: none;
   }
 }
 
@@ -1036,8 +1036,8 @@ footer .footer-container h2.contact-text {
 
 footer .footer-icons {
   display: flex;
-  flex-direction: row;   /* Horizontal en desktop */
-  gap: 12rem;            /* 👈 Espaciado amplio entre iconos */
+  flex-direction: row;   
+  gap: 12rem;            
   justify-content: center;
   align-items: center;
 }
@@ -1056,8 +1056,8 @@ footer .footer-icons img:hover {
 /* ──────────────── FOOTER - VERSIÓN MÓVIL ──────────────── */
 @media (max-width: 768px) {
   footer {
-    padding: 1rem;              /* ⬅️ Menos espacio vertical */
-    font-size: 0.85rem;         /* ⬅️ Texto más pequeño */
+    padding: 1rem;          
+    font-size: 0.85rem;        
   }
 
   footer .footer-container h2.contact-text {
@@ -1066,13 +1066,13 @@ footer .footer-icons img:hover {
   }
 
   footer .footer-icons {
-    flex-direction: row;       /* ⬅️ Importante: fila horizontal */
-    gap: 6rem;                 /* ⬅️ Un poco más juntos que escritorio */
+    flex-direction: row;       
+    gap: 6rem;              
     justify-content: center;
   }
 
   footer .footer-icons img {
-    width: 20px;               /* ⬅️ Iconos más pequeños */
+    width: 20px;             
     height: 20px;
   }
 }
@@ -1138,9 +1138,9 @@ footer .footer-icons img:hover {
     margin: 0 0 0.8rem 0;
     gap: 0.4rem;
   }
-  .sort-label { display: none; } /* compactamos en móvil */
+  .sort-label { display: none; }
   #sort-select { font-size: 0.95rem; padding: 0.45rem 0.6rem; }
-  .sort-indicator { display: none; } /* si lo prefieres oculto en móvil */
+  .sort-indicator { display: none; } 
 }
 
 /* ------------------ BÚSQUEDA (header) ------------------ */
@@ -1150,7 +1150,7 @@ footer .footer-icons img:hover {
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  margin-left: 0.6rem; /* separa un pelín del logo */
+  margin-left: 0.6rem; 
   position: relative;
   z-index: 1200;
 }
@@ -1178,7 +1178,7 @@ footer .footer-icons img:hover {
 /* contenedor del input (inicialmente oculto) */
 .search-input-container {
   position: absolute;
-  left: 48px; /* justo a la derecha del icono */
+  left: 48px;
   top: -6px;
   min-width: 320px;
   max-width: 420px;
@@ -1255,21 +1255,20 @@ footer .footer-icons img:hover {
   border-radius: 6px;
 }
 
-/* comportamiento responsive: sólo en desktop mostramos el control "expandible"
-   (en móvil el icono puede seguir visible, pero no forzamos el input a abrirse) */
+
 @media (max-width: 768px) {
   .search-input-container {
-    display: none !important; /* ocultar siempre en móvil para seguir tu pedido PC-only */
+    display: none !important;
   }
   .search-wrapper { margin-left: 0.4rem; }
 }
 
-/* ensure popup sits above header carrito popup */
 .search-input-container { z-index: 1300; }
 
 /* ============================
    HEADER - LAYOUT MÓVIL / HAMBURGUESA
    ============================ */
+
 
 /* base para nav principal */
 .main-nav {
@@ -1281,7 +1280,7 @@ footer .footer-icons img:hover {
 
 /* Hamburger button (hidden on desktop) */
 .hamburguesa-btn {
-  display: none; /* visible sólo en móvil */
+  display: none;
   background: transparent;
   border: none;
   padding: 0.4rem;
@@ -1342,26 +1341,22 @@ footer .footer-icons img:hover {
   /* re-ordenamos elementos: hamburguesa (left), logo (center), user-actions (right) */
   .main-nav {
     display: grid;
-    grid-template-columns: 48px 1fr 120px; /* espacio fijo para hamburguesa y acciones, logo centrar */
+    grid-template-columns: 48px 1fr 120px;
     align-items: center;
     gap: 0.5rem;
   }
 
   /* centramos el logo en su celda */
   .logo { justify-self: center; }
-  .menu { display: none; } /* ocultar menú horizontal en móvil */
+  .menu { display: none; }
 
-  /* search input container stay hidden in mobile (we decided PC-only) */
   .search-input-container { display: none !important; }
 
-  /* perfil texto hidde en mobile to be compact (keep icon) */
   .perfil-text { display: none; }
   .perfil-icon { font-size: 1.2rem; }
 
-  /* carrito: align to the right */
   .user-actions { justify-self: end; grid-column: 3; }
 
-  /* size adjustments */
   .logo img { max-height: 44px; }
 }
 
@@ -1556,18 +1551,17 @@ footer .footer-icons img:hover {
    --------------------------- */
 
 @media (max-width: 768px) {
-  /* selectores más amplios por si la clase varía */
   .mobile-search-button,
   .mobile-search-btn,
   .mobile-search-area button,
   #mobile-menu .mobile-search-button,
   #mobile-menu .mobile-search-btn,
   #mobile-menu .mobile-search-area button {
-    display: block !important;        /* forzar visible en móvil */
+    display: block !important;       
     width: calc(100% - 2rem) !important;
     margin: 0.5rem 1rem !important;
     padding: 0.85rem 1rem !important;
-    background: #D45510 !important;   /* tu color de marca */
+    background: #D45510 !important;  
     color: #fff !important;
     font-size: 1rem !important;
     font-weight: 700 !important;
@@ -1593,7 +1587,6 @@ footer .footer-icons img:hover {
     transform: translateY(0);
   }
 
-  /* Si hay icono + texto, asegurar separación */
   .mobile-search-button .icon,
   .mobile-search-btn .icon {
     margin-right: 0.6rem;

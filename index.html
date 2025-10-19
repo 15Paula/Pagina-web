@@ -411,8 +411,6 @@
         if (img) {
           img.style.cursor = 'pointer';
           img.addEventListener('click', () => {
-            // redirige a la página de la categoría correspondiente
-            // ej: juegos.html?expand=Nombre%20del%20producto
             const targetPage = (prod.categoria && prod.categoria.toLowerCase() === 'decoracion') ? 'decoracion.html'
                               : (prod.categoria && prod.categoria.toLowerCase() === 'juegos') ? 'juegos.html'
                               : 'catalogo.html';

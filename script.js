@@ -429,14 +429,12 @@ function inicializarBusqueda() {
 // BÚSQUEDA MÓVIL FULLSCREEN
 // -------------------------
 function inicializarBusquedaMovil() {
-  // espera a que el botón exista
   const mobileSearchBtn = document.querySelector('.mobile-search-button');
   if (!mobileSearchBtn) {
     console.warn('inicializarBusquedaMovil: .mobile-search-button no encontrada');
     return;
   }
 
-  // crear overlay si no existe
   if (!document.getElementById('mobile-search-overlay')) {
     const overlay = document.createElement('div');
     overlay.id = 'mobile-search-overlay';
@@ -457,10 +455,8 @@ function inicializarBusquedaMovil() {
   const closeBtn = document.getElementById('mobile-search-close');
   const resultsList = document.getElementById('mobile-search-results-list');
 
-  // abrir el overlay cuando se toca el botón en el menú móvil
   mobileSearchBtn.addEventListener('click', (e) => {
     e.stopPropagation();
-    // cerrar menú móvil si está abierto
     const mobileMenu = document.getElementById('mobile-menu');
     const menuOverlay = document.getElementById('menu-overlay');
     if (mobileMenu) mobileMenu.classList.remove('open');
@@ -471,7 +467,6 @@ function inicializarBusquedaMovil() {
     setTimeout(() => { input.focus(); }, 80);
   });
 
-  // cerrar si toca fondo (overlay) o el botón cerrar
   overlay.addEventListener('click', (ev) => {
     if (ev.target === overlay) {
       overlay.classList.remove('active');
@@ -487,7 +482,6 @@ function inicializarBusquedaMovil() {
     resultsList.innerHTML = '';
   });
 
-  // Debounce local (usa la misma idea de la búsqueda de escritorio)
   function debounceLocal(fn, wait = 200) {
     let t;
     return (...args) => {
@@ -500,7 +494,6 @@ function inicializarBusquedaMovil() {
     return (s || '').toString().normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   }
 
-  // función que hace la búsqueda y renderiza resultados
   const doMobileSearch = debounceLocal((q) => {
     resultsList.innerHTML = '';
     const qn = (q||'').trim();
@@ -519,10 +512,8 @@ function inicializarBusquedaMovil() {
         li.textContent = prod.nombre;
         li.addEventListener('click', (ev) => {
           ev.stopPropagation();
-          // redirige a la página correspondiente con ?expand=
           const target = pageForCategory(prod.categoria);
           const url = `${target}?expand=${encodeURIComponent(prod.nombre)}`;
-          // cerrar overlay y navegar
           overlay.classList.remove('active');
           input.value = '';
           resultsList.innerHTML = '';
@@ -539,7 +530,6 @@ function inicializarBusquedaMovil() {
     });
   }, 180);
 
-  // conectar input
   input.addEventListener('input', (e) => {
     doMobileSearch(e.target.value);
   });
@@ -557,7 +547,6 @@ function inicializarBusquedaMovil() {
   });
 }
 
-/* ------------------ Cargar productos (con orden) ------------------ */
 async function cargarProductos(filtroCategoria = null) {
   try {
     lastFilterCategoria = filtroCategoria;
@@ -649,7 +638,6 @@ async function cargarProductos(filtroCategoria = null) {
       createdCards.push({ card, product: prod });
     });
 
-    /* --------------- After insert: bind events --------------- */
     document.querySelectorAll('.add-to-cart-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
@@ -703,7 +691,6 @@ async function cargarProductos(filtroCategoria = null) {
       }
     });
 
-    // Respecto a ?expand=... en URL, buscamos y expandimos
     const params = new URLSearchParams(window.location.search);
     const expandParam = params.get('expand');
     if (expandParam) {
@@ -731,7 +718,6 @@ async function cargarProductos(filtroCategoria = null) {
   }
 }
 
-/* ------------------ Carga header/footer e inicio ------------------ */
 document.addEventListener('DOMContentLoaded', () => {
   fetch('header.html')
     .then(r => r.text())
@@ -739,7 +725,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const h = document.getElementById('header-container');
       if (h) {
         h.innerHTML = html;
-        // inicializamos carrito y búsqueda y menú (siempre que existan)
         try { inicializarCarrito(); } catch (e) { console.warn('Error inicializando carrito', e); }
         try { inicializarBusqueda(); } catch (e) { /* no crítico */ }
         if (typeof inicializarMenuHamburguesa === 'function') {
